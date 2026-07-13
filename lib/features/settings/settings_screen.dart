@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -17,93 +18,99 @@ class SettingsScreen extends ConsumerWidget {
     final state = ref.watch(hydroControllerProvider);
     final controller = ref.read(hydroControllerProvider.notifier);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Settings',
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w900,
-                letterSpacing: -0.5,
-              ),
+    return CupertinoPageScaffold(
+      child: CustomScrollView(
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
         ),
-      ),
-      body: ListView(
-        physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(20, 4, 20, 32),
-        children: [
-          _SettingsGroup(
-            title: 'Goal & Profile',
-            children: [
-              _MascotTile(state: state),
-              ListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                title: const Text('Daily Hydration Goal', style: TextStyle(fontWeight: FontWeight.w600)),
-                subtitle: Text(
-                  'Your daily target is ${state.settings.profile?.dailyGoalMl ?? 2500} ml. Modify parameters to recalculate.',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-                trailing: TextButton(
-                  onPressed: controller.resetProfile,
-                  child: const Text('Recalculate'),
-                ),
-              ),
-            ],
+        slivers: [
+          CupertinoSliverNavigationBar(
+            largeTitle: const Text('Settings'),
+            border: null,
+            backgroundColor: CupertinoTheme.of(context)
+                .barBackgroundColor
+                .withValues(alpha: 0.82),
           ),
-          _SettingsGroup(
-            title: 'Appearance',
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          SliverSafeArea(
+            top: false,
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                CupertinoListSection.insetGrouped(
+                  header: const Text('PROFILE & MASCOT'),
                   children: [
-                    const Text('Unit System', style: TextStyle(fontWeight: FontWeight.w600)),
-                    SegmentedButton<UnitSystem>(
-                      showSelectedIcon: false,
-                      segments: const [
-                        ButtonSegment(value: UnitSystem.ml, label: Text('ml')),
-                        ButtonSegment(value: UnitSystem.oz, label: Text('oz')),
-                      ],
-                      selected: {state.settings.unitSystem},
-                      onSelectionChanged: (value) => controller.updateUnit(value.first),
-                      style: const ButtonStyle(visualDensity: VisualDensity.compact),
+                    _MascotTile(state: state),
+                    CupertinoListTile.notched(
+                      title: const Text('Daily Goal target'),
+                      subtitle: Text(
+                        'Target is ${state.settings.profile?.dailyGoalMl ?? 2500} ml. Tap to recalculate.',
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                      trailing: CupertinoButton(
+                        padding: EdgeInsets.zero,
+                        onPressed: controller.resetProfile,
+                        child: const Text('Recalculate'),
+                      ),
                     ),
                   ],
                 ),
-              ),
-              _ThemeSelector(state: state),
-            ],
-          ),
-          _SettingsGroup(
-            title: 'Reminders',
-            children: [
-              _ReminderSettingsSection(state: state),
-            ],
-          ),
-          _SettingsGroup(
-            title: 'Custom Beverages',
-            children: [
-              _CustomDrinksSection(state: state),
-            ],
-          ),
-          _SettingsGroup(
-            title: 'Monetization & Ads',
-            children: [
-              _MonetizationSection(state: state),
-            ],
-          ),
-          _SettingsGroup(
-            title: 'Data & System',
-            children: [
-              ListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                title: const Text('Backup Data', style: TextStyle(fontWeight: FontWeight.w600)),
-                subtitle: const Text('Generate and preview local storage data in CSV format.'),
-                trailing: const Icon(Icons.chevron_right_rounded),
-                onTap: () => _showCsv(context, state),
-              ),
-              const _FcmTokenTile(),
-            ],
+                CupertinoListSection.insetGrouped(
+                  header: const Text('APPEARANCE'),
+                  children: [
+                    CupertinoListTile.notched(
+                      title: const Text('Unit System'),
+                      trailing: CupertinoSlidingSegmentedControl<UnitSystem>(
+                        groupValue: state.settings.unitSystem,
+                        children: const {
+                          UnitSystem.ml: Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                            child: Text('ml', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                          ),
+                          UnitSystem.oz: Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                            child: Text('oz', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                          ),
+                        },
+                        onValueChanged: (value) {
+                          if (value != null) controller.updateUnit(value);
+                        },
+                      ),
+                    ),
+                    _ThemeSelectorTile(state: state),
+                  ],
+                ),
+                CupertinoListSection.insetGrouped(
+                  header: const Text('ALERTS & REMINDERS'),
+                  children: [
+                    _ReminderSettingsSection(state: state),
+                  ],
+                ),
+                CupertinoListSection.insetGrouped(
+                  header: const Text('BEVERAGE MANAGEMENT'),
+                  children: [
+                    _CustomDrinksSection(state: state),
+                  ],
+                ),
+                CupertinoListSection.insetGrouped(
+                  header: const Text('MONETIZATION'),
+                  children: [
+                    _MonetizationSection(state: state),
+                  ],
+                ),
+                CupertinoListSection.insetGrouped(
+                  header: const Text('DATA & LOGS'),
+                  children: [
+                    CupertinoListTile.notched(
+                      title: const Text('Backup CSV logs'),
+                      subtitle: const Text('Generate and copy CSV logs of your history.'),
+                      trailing: const Icon(CupertinoIcons.chevron_right, color: Color(0xFF8E8E93), size: 16),
+                      onTap: () => _showCsv(context, state),
+                    ),
+                    const _FcmTokenTile(),
+                  ],
+                ),
+                const SizedBox(height: 24),
+              ]),
+            ),
           ),
         ],
       ),
@@ -112,79 +119,38 @@ class SettingsScreen extends ConsumerWidget {
 
   void _showCsv(BuildContext context, HydroState state) {
     final csv = const ExportService().entriesToCsv(state.entries);
-    showDialog<void>(
+    showCupertinoDialog<void>(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: const Text('CSV Export Preview', style: TextStyle(fontWeight: FontWeight.bold)),
-          content: SingleChildScrollView(child: SelectableText(csv)),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        return CupertinoAlertDialog(
+          title: const Text('CSV Export'),
+          content: Padding(
+            padding: const EdgeInsets.only(top: 10),
+            child: Material(
+              color: Colors.transparent,
+              child: SingleChildScrollView(
+                child: SelectableText(
+                  csv,
+                  style: const TextStyle(fontSize: 12),
+                ),
+              ),
+            ),
+          ),
           actions: [
-            TextButton(
+            CupertinoDialogAction(
               onPressed: () => Navigator.pop(context),
               child: const Text('Close'),
+            ),
+            CupertinoDialogAction(
+              onPressed: () {
+                Clipboard.setData(ClipboardData(text: csv));
+                Navigator.pop(context);
+              },
+              child: const Text('Copy to Clipboard'),
             ),
           ],
         );
       },
-    );
-  }
-}
-
-class _SettingsGroup extends StatelessWidget {
-  const _SettingsGroup({required this.title, required this.children});
-
-  final String title;
-  final List<Widget> children;
-
-  @override
-  Widget build(BuildContext context) {
-    final list = <Widget>[];
-    for (var i = 0; i < children.length; i++) {
-      list.add(children[i]);
-      if (i < children.length - 1) {
-        list.add(Divider(
-          height: 1,
-          thickness: 1,
-          indent: 16,
-          endIndent: 16,
-          color: Theme.of(context)
-              .colorScheme
-              .surfaceContainerHighest
-              .withValues(alpha: 0.6),
-        ));
-      }
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 6, bottom: 8, top: 22),
-          child: Text(
-            title.toUpperCase(),
-            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 1.2,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-          ),
-        ),
-        Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            color: Theme.of(context)
-                .colorScheme
-                .surfaceContainerHighest
-                .withValues(alpha: .3),
-          ),
-          clipBehavior: Clip.antiAlias,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: list,
-          ),
-        ),
-      ],
     );
   }
 }
@@ -198,7 +164,7 @@ class _MascotTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final textController = TextEditingController(text: state.settings.mascotName);
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: Row(
         children: [
           Container(
@@ -209,19 +175,26 @@ class _MascotTile extends ConsumerWidget {
             ),
             child: Text(
               mascotEmoji(state.mascotMood),
-              style: const TextStyle(fontSize: 28),
+              style: const TextStyle(fontSize: 26),
             ),
           ),
           const SizedBox(width: 14),
           Expanded(
-            child: TextField(
-              controller: textController,
-              decoration: const InputDecoration(
-                labelText: 'Mascot Name',
-                isDense: true,
-                contentPadding: EdgeInsets.symmetric(vertical: 8),
+            child: Material(
+              color: Colors.transparent,
+              child: CupertinoTextField(
+                controller: textController,
+                placeholder: 'Mascot Name',
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                decoration: BoxDecoration(
+                  color: CupertinoDynamicColor.resolve(
+                    CupertinoColors.systemGroupedBackground,
+                    context,
+                  ),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                onSubmitted: ref.read(hydroControllerProvider.notifier).updateMascotName,
               ),
-              onSubmitted: ref.read(hydroControllerProvider.notifier).updateMascotName,
             ),
           ),
         ],
@@ -230,8 +203,8 @@ class _MascotTile extends ConsumerWidget {
   }
 }
 
-class _ThemeSelector extends ConsumerWidget {
-  const _ThemeSelector({required this.state});
+class _ThemeSelectorTile extends ConsumerWidget {
+  const _ThemeSelectorTile({required this.state});
 
   final HydroState state;
 
@@ -245,31 +218,40 @@ class _ThemeSelector extends ConsumerWidget {
     ];
 
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Theme Mode', style: TextStyle(fontWeight: FontWeight.w600)),
-              SegmentedButton<ThemeMode>(
-                showSelectedIcon: false,
-                segments: const [
-                  ButtonSegment(value: ThemeMode.system, label: Text('Auto')),
-                  ButtonSegment(value: ThemeMode.light, label: Text('Light')),
-                  ButtonSegment(value: ThemeMode.dark, label: Text('Dark')),
-                ],
-                selected: {state.settings.themeMode},
-                onSelectionChanged: (value) => controller.updateThemeMode(value.first),
-                style: const ButtonStyle(visualDensity: VisualDensity.compact),
+              const Text('Theme Mode', style: TextStyle(fontSize: 16)),
+              CupertinoSlidingSegmentedControl<ThemeMode>(
+                groupValue: state.settings.themeMode,
+                children: const {
+                  ThemeMode.system: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 8),
+                    child: Text('Auto', style: TextStyle(fontSize: 12)),
+                  ),
+                  ThemeMode.light: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 8),
+                    child: Text('Light', style: TextStyle(fontSize: 12)),
+                  ),
+                  ThemeMode.dark: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 8),
+                    child: Text('Dark', style: TextStyle(fontSize: 12)),
+                  ),
+                },
+                onValueChanged: (value) {
+                  if (value != null) controller.updateThemeMode(value);
+                },
               ),
             ],
           ),
           const SizedBox(height: 16),
           Row(
             children: [
-              const Text('Accent Color', style: TextStyle(fontWeight: FontWeight.w600)),
+              const Text('Accent Tint', style: TextStyle(fontSize: 16)),
               const Spacer(),
               Row(
                 children: colors.map((color) {
@@ -278,29 +260,22 @@ class _ThemeSelector extends ConsumerWidget {
                     onTap: () => controller.updateAccent(color),
                     child: Container(
                       margin: const EdgeInsets.only(left: 10),
-                      width: 28,
-                      height: 28,
+                      width: 24,
+                      height: 24,
                       decoration: BoxDecoration(
                         color: color,
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: isSelected ? Theme.of(context).colorScheme.onSurface : Colors.transparent,
+                          color: isSelected
+                              ? CupertinoDynamicColor.resolve(CupertinoColors.label, context)
+                              : Colors.transparent,
                           width: 2,
                         ),
-                        boxShadow: isSelected
-                            ? [
-                                BoxShadow(
-                                  color: color.withValues(alpha: 0.35),
-                                  blurRadius: 6,
-                                  offset: const Offset(0, 2),
-                                )
-                              ]
-                            : null,
                       ),
                       child: isSelected
                           ? Icon(
-                              Icons.check_rounded,
-                              size: 14,
+                              CupertinoIcons.checkmark,
+                              size: 11,
                               color: color.computeLuminance() > 0.5 ? Colors.black : Colors.white,
                             )
                           : null,
@@ -329,70 +304,54 @@ class _ReminderSettingsSection extends ConsumerWidget {
         ? <TimeOfDay>[]
         : const ReminderService().buildSchedule(profile, reminders);
     final controller = ref.read(hydroControllerProvider.notifier);
+    final isDark = CupertinoTheme.brightnessOf(context) == Brightness.dark;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        SwitchListTile(
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          title: const Text('Smart Reminders', style: TextStyle(fontWeight: FontWeight.w600)),
+        CupertinoListTile.notched(
+          title: const Text('Smart Reminders'),
           subtitle: Text(
             const ReminderService().nativeNotificationsAvailable
-                ? 'Natively scheduling reminders on this device.'
-                : 'Reminders simulate triggers (Weekend enabled).',
-            style: Theme.of(context).textTheme.bodySmall,
+                ? 'Natively scheduling reminders on device.'
+                : 'Reminders simulate triggers (Weekend active).',
+            style: const TextStyle(fontSize: 11),
           ),
-          value: reminders.enabled,
-          onChanged: (value) => controller.updateReminderSettings(
-            reminders.copyWith(enabled: value),
-          ),
-        ),
-        Divider(
-          height: 1,
-          thickness: 1,
-          indent: 16,
-          endIndent: 16,
-          color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
-        ),
-        SwitchListTile(
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-          title: const Text('Adaptive Nudges', style: TextStyle(fontWeight: FontWeight.w600)),
-          value: reminders.adaptive,
-          onChanged: (value) => controller.updateReminderSettings(
-            reminders.copyWith(adaptive: value),
+          trailing: CupertinoSwitch(
+            value: reminders.enabled,
+            onChanged: (value) => controller.updateReminderSettings(
+              reminders.copyWith(enabled: value),
+            ),
           ),
         ),
-        Divider(
-          height: 1,
-          thickness: 1,
-          indent: 16,
-          endIndent: 16,
-          color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
-        ),
-        SwitchListTile(
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-          title: const Text('Weekend Reminders', style: TextStyle(fontWeight: FontWeight.w600)),
-          value: reminders.weekendsEnabled,
-          onChanged: (value) => controller.updateReminderSettings(
-            reminders.copyWith(weekendsEnabled: value),
+        CupertinoListTile.notched(
+          title: const Text('Adaptive Nudges'),
+          subtitle: const Text('Adjust times automatically to weather bounds.', style: TextStyle(fontSize: 11)),
+          trailing: CupertinoSwitch(
+            value: reminders.adaptive,
+            onChanged: (value) => controller.updateReminderSettings(
+              reminders.copyWith(adaptive: value),
+            ),
           ),
         ),
-        Divider(
-          height: 1,
-          thickness: 1,
-          indent: 16,
-          endIndent: 16,
-          color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
+        CupertinoListTile.notched(
+          title: const Text('Weekend Reminders'),
+          trailing: CupertinoSwitch(
+            value: reminders.weekendsEnabled,
+            onChanged: (value) => controller.updateReminderSettings(
+              reminders.copyWith(weekendsEnabled: value),
+            ),
+          ),
         ),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Interval Frequency', style: TextStyle(fontWeight: FontWeight.w600)),
+                  const Text('Interval Frequency', style: TextStyle(fontSize: 15)),
                   Text(
                     '${reminders.intervalMinutes} min',
                     style: TextStyle(
@@ -402,48 +361,51 @@ class _ReminderSettingsSection extends ConsumerWidget {
                   ),
                 ],
               ),
-              Slider(
-                min: 45,
-                max: 180,
-                divisions: 9,
-                value: reminders.intervalMinutes.toDouble(),
-                onChanged: (value) => controller.updateReminderSettings(
-                  reminders.copyWith(intervalMinutes: value.round()),
+              const SizedBox(height: 6),
+              Material(
+                color: Colors.transparent,
+                child: Slider(
+                  min: 45,
+                  max: 180,
+                  divisions: 9,
+                  value: reminders.intervalMinutes.toDouble(),
+                  onChanged: (value) => controller.updateReminderSettings(
+                    reminders.copyWith(intervalMinutes: value.round()),
+                  ),
                 ),
               ),
             ],
           ),
         ),
         if (schedule.isNotEmpty) ...[
-          Divider(
-            height: 1,
-            thickness: 1,
-            indent: 16,
-            endIndent: 16,
-            color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
-          ),
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(
+                const Text(
                   'SCHEDULED TIMES',
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: CupertinoColors.secondaryLabel,
+                  ),
                 ),
                 const SizedBox(height: 10),
                 Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
+                  spacing: 6,
+                  runSpacing: 6,
                   children: schedule.take(8).map((time) {
-                    return Chip(
-                      label: Text(time.format(context)),
-                      visualDensity: VisualDensity.compact,
-                      side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
-                      backgroundColor: Theme.of(context).colorScheme.surface,
+                    return Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF3A3A3C) : const Color(0xFFE5E5EA),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        time.format(context),
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                      ),
                     );
                   }).toList(),
                 ),
@@ -456,17 +418,35 @@ class _ReminderSettingsSection extends ConsumerWidget {
           child: Row(
             children: [
               Expanded(
-                child: OutlinedButton.icon(
+                child: CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  color: isDark ? const Color(0xFF3A3A3C) : const Color(0xFFE5E5EA),
+                  borderRadius: BorderRadius.circular(10),
                   onPressed: () async {
                     await const ReminderService().showInstantTestNotification();
                   },
-                  icon: const Icon(Icons.send_rounded),
-                  label: const Text('Test Notification'),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(CupertinoIcons.paperplane, size: 16, color: Theme.of(context).colorScheme.primary),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Send Test',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: FilledButton.icon(
+                child: CupertinoButton.filled(
+                  padding: EdgeInsets.zero,
+                  borderRadius: BorderRadius.circular(10),
                   onPressed: profile == null
                       ? null
                       : () async {
@@ -476,15 +456,29 @@ class _ReminderSettingsSection extends ConsumerWidget {
                             weather: state.settings.weather,
                           );
                           if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Reminder schedule synchronized.'),
+                            showCupertinoDialog<void>(
+                              context: context,
+                              builder: (context) => CupertinoAlertDialog(
+                                title: const Text('Schedule Synced'),
+                                content: const Text('Your hydration alarms have been refreshed.'),
+                                actions: [
+                                  CupertinoDialogAction(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: const Text('OK'),
+                                  )
+                                ],
                               ),
                             );
                           }
                         },
-                  icon: const Icon(Icons.notifications_active_rounded),
-                  label: const Text('Sync Schedule'),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(CupertinoIcons.refresh, size: 16),
+                      SizedBox(width: 8),
+                      Text('Sync Alarm', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -503,41 +497,34 @@ class _CustomDrinksSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final limitReached = !state.settings.isPro && state.customDrinks.length >= 2;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        ListTile(
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          title: const Text('Hydration Multiplex', style: TextStyle(fontWeight: FontWeight.w600)),
+        CupertinoListTile.notched(
+          title: const Text('Hydration Multiplex'),
           subtitle: Text(
             limitReached
-                ? 'Limit of 2 custom drinks reached on Free version.'
-                : 'Create beverages with custom hydration multiplier coefficients.',
-            style: Theme.of(context).textTheme.bodySmall,
+                ? 'Free version limit of 2 reached.'
+                : 'Create drinks with multiplier parameters.',
+            style: const TextStyle(fontSize: 11),
           ),
-          trailing: TextButton.icon(
+          trailing: CupertinoButton(
+            padding: EdgeInsets.zero,
             onPressed: limitReached ? null : () => _showCustomDrinkSheet(context, ref),
-            icon: const Icon(Icons.add_rounded),
-            label: const Text('Add'),
+            child: const Text('Create'),
           ),
         ),
         if (state.customDrinks.isNotEmpty) ...[
-          Divider(
-            height: 1,
-            thickness: 1,
-            indent: 16,
-            endIndent: 16,
-            color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
-          ),
           ...state.customDrinks.map((drink) {
-            return ListTile(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-              leading: Text(drink.emoji, style: const TextStyle(fontSize: 24)),
+            return CupertinoListTile.notched(
+              leading: Text(drink.emoji, style: const TextStyle(fontSize: 22)),
               title: Text(drink.label, style: const TextStyle(fontWeight: FontWeight.w500)),
-              subtitle: Text('${drink.multiplier}x multiplier hydration coefficient'),
-              trailing: IconButton(
+              subtitle: Text('${drink.multiplier}x multiplier hydration coefficient', style: const TextStyle(fontSize: 11)),
+              trailing: CupertinoButton(
+                padding: EdgeInsets.zero,
                 onPressed: () => ref.read(hydroControllerProvider.notifier).removeCustomDrink(drink.id),
-                icon: const Icon(Icons.delete_outline_rounded),
+                child: const Icon(CupertinoIcons.trash, color: CupertinoColors.destructiveRed, size: 18),
               ),
             );
           }),
@@ -550,87 +537,101 @@ class _CustomDrinksSection extends ConsumerWidget {
     final name = TextEditingController(text: 'Coconut Water');
     final emoji = TextEditingController(text: '🥥');
     var multiplier = 0.95;
-    final drink = await showModalBottomSheet<DrinkOption>(
+
+    final notifier = ref.read(hydroControllerProvider.notifier);
+    final drink = await showCupertinoModalPopup<DrinkOption>(
       context: context,
-      showDragHandle: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setState) {
-            return Padding(
-              padding: EdgeInsets.fromLTRB(
-                20,
-                8,
-                20,
-                20 + MediaQuery.viewInsetsOf(context).bottom,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    'New Beverage Creator',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: name,
-                    decoration: const InputDecoration(labelText: 'Name'),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: emoji,
-                    decoration: const InputDecoration(labelText: 'Emoji Icon'),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('Hydration Coefficient', style: TextStyle(fontWeight: FontWeight.bold)),
-                      Text(
-                        '${multiplier.toStringAsFixed(2)}x',
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.primary,
-                          fontWeight: FontWeight.bold,
+            return CupertinoActionSheet(
+              title: const Text('New Beverage Creator'),
+              message: Material(
+                color: Colors.transparent,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(height: 12),
+                    CupertinoTextField(
+                      controller: name,
+                      placeholder: 'Name',
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: CupertinoDynamicColor.resolve(
+                          CupertinoColors.systemGroupedBackground,
+                          context,
                         ),
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                    ],
-                  ),
-                  Slider(
-                    min: .3,
-                    max: 1.2,
-                    divisions: 18,
-                    value: multiplier,
-                    onChanged: (value) => setState(() => multiplier = value),
-                  ),
-                  const SizedBox(height: 12),
-                  FilledButton(
-                    onPressed: () {
-                      Navigator.pop(
-                        context,
-                        DrinkOption(
-                          id: 'custom_${DateTime.now().microsecondsSinceEpoch}',
-                          label: name.text.trim().isEmpty ? 'Custom Drink' : name.text.trim(),
-                          multiplier: multiplier,
-                          color: const Color(0xFF00A8A8),
-                          emoji: emoji.text.trim().isEmpty ? '💧' : emoji.text.trim(),
-                          isCustom: true,
+                    ),
+                    const SizedBox(height: 10),
+                    CupertinoTextField(
+                      controller: emoji,
+                      placeholder: 'Emoji Icon',
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: CupertinoDynamicColor.resolve(
+                          CupertinoColors.systemGroupedBackground,
+                          context,
                         ),
-                      );
-                    },
-                    child: const Text('Create Beverage'),
-                  ),
-                ],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Hydration Coefficient', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                        Text(
+                          '${multiplier.toStringAsFixed(2)}x',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Slider(
+                      min: .3,
+                      max: 1.2,
+                      divisions: 18,
+                      value: multiplier,
+                      onChanged: (value) => setState(() => multiplier = value),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                CupertinoActionSheetAction(
+                  onPressed: () {
+                    Navigator.pop(
+                      context,
+                      DrinkOption(
+                        id: 'custom_${DateTime.now().microsecondsSinceEpoch}',
+                        label: name.text.trim().isEmpty ? 'Custom Drink' : name.text.trim(),
+                        multiplier: multiplier,
+                        color: const Color(0xFF00A8A8),
+                        emoji: emoji.text.trim().isEmpty ? '💧' : emoji.text.trim(),
+                        isCustom: true,
+                      ),
+                    );
+                  },
+                  child: const Text('Create Beverage'),
+                ),
+              ],
+              cancelButton: CupertinoActionSheetAction(
+                onPressed: () => Navigator.pop(context),
+                isDestructiveAction: true,
+                child: const Text('Cancel'),
               ),
             );
           },
         );
       },
     );
+
     if (drink != null) {
-      await ref.read(hydroControllerProvider.notifier).addCustomDrink(drink);
+      await notifier.addCustomDrink(drink);
     }
   }
 }
@@ -648,51 +649,55 @@ class _MonetizationSection extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (isPro)
-          ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          CupertinoListTile.notched(
             leading: Icon(
-              Icons.stars_rounded,
+              CupertinoIcons.star_fill,
               color: Theme.of(context).colorScheme.primary,
-              size: 26,
+              size: 20,
             ),
             title: const Text('HydroFlow PRO Active', style: TextStyle(fontWeight: FontWeight.bold)),
-            subtitle: const Text('Lifetime premium features unlocked. Thank you for your support!'),
+            subtitle: const Text('Lifetime premium features unlocked.', style: TextStyle(fontSize: 11)),
             trailing: Icon(
-              Icons.check_circle_rounded,
+              CupertinoIcons.checkmark_seal_fill,
               color: Theme.of(context).colorScheme.primary,
             ),
           )
         else ...[
-          ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            leading: Icon(
-              Icons.stars_rounded,
-              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.6),
-              size: 26,
+          CupertinoListTile.notched(
+            leading: const Icon(
+              CupertinoIcons.star,
+              color: CupertinoColors.systemOrange,
+              size: 20,
             ),
             title: const Text('Upgrade to HydroFlow PRO', style: TextStyle(fontWeight: FontWeight.bold)),
-            subtitle: const Text('Remove ads, unlock unlimited beverages, and support the app.'),
-            trailing: const Icon(Icons.chevron_right_rounded),
+            subtitle: const Text('Unlock weather bounds and remove all ads.', style: TextStyle(fontSize: 11)),
+            trailing: const Icon(CupertinoIcons.chevron_right, color: Color(0xFF8E8E93), size: 16),
             onTap: () => _showUpgradeDialog(context, ref),
           ),
-          Divider(
-            height: 1,
-            thickness: 1,
-            indent: 16,
-            endIndent: 16,
-            color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
-          ),
           Padding(
-            padding: const EdgeInsets.all(16),
-            child: FilledButton.icon(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: CupertinoButton(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
               onPressed: () async {
                 final earned = await const AdService().showRewardedAdForAdFreeHour();
                 if (earned) await ref.read(hydroControllerProvider.notifier).grantRewardedAdFreeHour();
               },
-              icon: const Icon(Icons.play_circle_outline_rounded),
-              label: const Text('Watch Ad (1 Hr Ad-Free)'),
-              style: FilledButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(CupertinoIcons.play_circle, size: 16, color: Theme.of(context).colorScheme.primary),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Watch Ad (1 Hr Ad-Free)',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -702,92 +707,99 @@ class _MonetizationSection extends ConsumerWidget {
   }
 
   void _showUpgradeDialog(BuildContext context, WidgetRef ref) {
-    showModalBottomSheet<void>(
+    showCupertinoModalPopup<void>(
       context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
       builder: (context) {
-        final scheme = Theme.of(context).colorScheme;
+        final isDark = CupertinoTheme.brightnessOf(context) == Brightness.dark;
         return Container(
-          padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(2),
-                    color: scheme.outlineVariant,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              Row(
-                children: [
-                  const Text(
-                    '👑',
-                    style: TextStyle(fontSize: 32),
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    'HydroFlow PRO',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: -0.5,
-                        ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              Text(
-                'Unlock the ultimate hydration companion and support development!',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: scheme.onSurfaceVariant,
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1C1C1E) : CupertinoColors.systemBackground,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          padding: const EdgeInsets.fromLTRB(24, 20, 24, 40),
+          child: SafeArea(
+            top: false,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Center(
+                  child: Container(
+                    width: 36,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(2.5),
+                      color: const Color(0xFFC7C7CC),
                     ),
-              ),
-              const SizedBox(height: 24),
-              const _UpgradeFeatureRow(
-                icon: Icons.block_rounded,
-                title: 'Ad-Free Experience',
-                description: 'Remove all banners and popups instantly.',
-              ),
-              const SizedBox(height: 16),
-              const _UpgradeFeatureRow(
-                icon: Icons.local_cafe_rounded,
-                title: 'Unlimited Custom Beverages',
-                description: 'Add as many custom drinks as you like (limited to 2 in free).',
-              ),
-              const SizedBox(height: 16),
-              const _UpgradeFeatureRow(
-                icon: Icons.thermostat_rounded,
-                title: 'Weather-Aware Alerts',
-                description: 'Adaptive splits based on real-time temperature updates.',
-              ),
-              const SizedBox(height: 32),
-              FilledButton(
-                onPressed: () async {
-                  await ref.read(hydroControllerProvider.notifier).toggleProPreview();
-                  if (context.mounted) {
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Welcome to HydroFlow PRO! 🎉')),
-                    );
-                  }
-                },
-                style: FilledButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
                   ),
                 ),
-                child: const Text('Upgrade for \$2.99 / Life', style: TextStyle(fontWeight: FontWeight.bold)),
-              ),
-            ],
+                const SizedBox(height: 24),
+                const Row(
+                  children: [
+                    Text('👑', style: TextStyle(fontSize: 32)),
+                    SizedBox(width: 12),
+                    Text(
+                      'HydroFlow PRO',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 24,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Unlock the ultimate hydration companion and support development!',
+                  style: TextStyle(
+                    color: CupertinoColors.secondaryLabel,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                const _UpgradeFeatureRow(
+                  icon: CupertinoIcons.slash_circle_fill,
+                  title: 'Ad-Free Experience',
+                  description: 'Remove all banners and popups instantly.',
+                ),
+                const SizedBox(height: 16),
+                const _UpgradeFeatureRow(
+                  icon: CupertinoIcons.drop_fill,
+                  title: 'Unlimited Custom Beverages',
+                  description: 'Add as many custom drinks as you like (limited to 2 in free).',
+                ),
+                const SizedBox(height: 16),
+                const _UpgradeFeatureRow(
+                  icon: CupertinoIcons.thermometer,
+                  title: 'Weather-Aware Alerts',
+                  description: 'Adaptive splits based on real-time temperature updates.',
+                ),
+                const SizedBox(height: 32),
+                CupertinoButton.filled(
+                  borderRadius: BorderRadius.circular(14),
+                  onPressed: () async {
+                    await ref.read(hydroControllerProvider.notifier).toggleProPreview();
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                      showCupertinoDialog<void>(
+                        context: context,
+                        builder: (context) => CupertinoAlertDialog(
+                          title: const Text('Welcome to PRO 🎉'),
+                          content: const Text('Thank you for unlocking HydroFlow PRO!'),
+                          actions: [
+                            CupertinoDialogAction(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text('Let\'s Go'),
+                            )
+                          ],
+                        ),
+                      );
+                    }
+                  },
+                  child: const Text('Upgrade for \$2.99 / Life', style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -808,17 +820,16 @@ class _UpgradeFeatureRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
           padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             shape: BoxShape.circle,
-            color: scheme.primary.withValues(alpha: 0.1),
+            color: Color(0x1A007AFF),
           ),
-          child: Icon(icon, color: scheme.primary, size: 20),
+          child: Icon(icon, color: CupertinoColors.systemBlue, size: 20),
         ),
         const SizedBox(width: 14),
         Expanded(
@@ -832,7 +843,7 @@ class _UpgradeFeatureRow extends StatelessWidget {
               const SizedBox(height: 2),
               Text(
                 description,
-                style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 12),
+                style: const TextStyle(color: CupertinoColors.secondaryLabel, fontSize: 12),
               ),
             ],
           ),
@@ -871,29 +882,37 @@ class _FcmTokenTileState extends State<_FcmTokenTile> {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      title: const Text('FCM Device Token', style: TextStyle(fontWeight: FontWeight.w600)),
+    return CupertinoListTile.notched(
+      title: const Text('FCM Device Token'),
       subtitle: Text(
         _token,
-        maxLines: 2,
+        maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: Theme.of(context).textTheme.bodySmall,
+        style: const TextStyle(fontSize: 11),
       ),
-      trailing: IconButton(
-        icon: const Icon(Icons.copy_all_rounded),
-        tooltip: 'Copy FCM Token',
+      trailing: CupertinoButton(
+        padding: EdgeInsets.zero,
         onPressed: _isLoading || _token.startsWith('Failed') || _token.startsWith('Fetching')
             ? null
             : () async {
                 await Clipboard.setData(ClipboardData(text: _token));
                 if (!context.mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('FCM Token copied to clipboard')),
+                showCupertinoDialog<void>(
+                  context: context,
+                  builder: (context) => CupertinoAlertDialog(
+                    title: const Text('Token Copied'),
+                    content: const Text('FCM Token copied to clipboard.'),
+                    actions: [
+                      CupertinoDialogAction(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('OK'),
+                      )
+                    ],
+                  ),
                 );
               },
+        child: const Icon(CupertinoIcons.doc_on_doc, size: 20),
       ),
     );
   }
 }
-

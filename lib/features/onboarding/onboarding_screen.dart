@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -43,125 +44,139 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       goalType: _goalType,
     );
 
-    return Scaffold(
-      body: SafeArea(
-        child: ListView(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          children: [
-            const SizedBox(height: 12),
-            _LogoMark(goal: predictedGoal),
-            const SizedBox(height: 32),
-            Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+    return CupertinoPageScaffold(
+      child: SafeArea(
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            children: [
+              const SizedBox(height: 12),
+              _LogoMark(goal: predictedGoal),
+              const SizedBox(height: 32),
+              
+              // Gender Select
+              _SlidingSegmentedField<String>(
+                label: 'Gender',
+                value: _gender,
+                values: const ['Female', 'Male', 'Prefer not to say'],
+                labelFor: (v) => v,
+                onChanged: (v) => setState(() => _gender = v),
+              ),
+              const SizedBox(height: 24),
+
+              // Weight & Height
+              Row(
                 children: [
-                  _SegmentedField<String>(
-                    label: 'Gender',
-                    value: _gender,
-                    values: const ['Female', 'Male', 'Prefer not to say'],
-                    labelFor: (value) => value,
-                    onChanged: (value) => setState(() => _gender = value),
+                  Expanded(
+                    child: _CupertinoNumberField(
+                      controller: _weightController,
+                      label: 'Weight',
+                      suffix: 'kg',
+                      onChanged: (_) => setState(() {}),
+                    ),
                   ),
-                  const SizedBox(height: 20),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _NumberField(
-                          controller: _weightController,
-                          label: 'Weight',
-                          suffix: 'kg',
-                          onChanged: (_) => setState(() {}),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: _NumberField(
-                          controller: _heightController,
-                          label: 'Height',
-                          suffix: 'cm',
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  _NumberField(
-                    controller: _ageController,
-                    label: 'Age',
-                    suffix: 'years',
-                  ),
-                  const SizedBox(height: 20),
-                  _SegmentedField<ActivityLevel>(
-                    label: 'Activity Level',
-                    value: _activityLevel,
-                    values: ActivityLevel.values,
-                    labelFor: _activityLabel,
-                    onChanged: (value) =>
-                        setState(() => _activityLevel = value),
-                  ),
-                  const SizedBox(height: 20),
-                  _SegmentedField<Climate>(
-                    label: 'Climate',
-                    value: _climate,
-                    values: Climate.values,
-                    labelFor: _climateLabel,
-                    onChanged: (value) => setState(() => _climate = value),
-                  ),
-                  const SizedBox(height: 20),
-                  _SegmentedField<GoalType>(
-                    label: 'Goal Focus',
-                    value: _goalType,
-                    values: GoalType.values,
-                    labelFor: _goalLabel,
-                    onChanged: (value) => setState(() => _goalType = value),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _CupertinoNumberField(
+                      controller: _heightController,
+                      label: 'Height',
+                      suffix: 'cm',
+                    ),
                   ),
                 ],
               ),
-            ),
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(
-                  child: _TimeButton(
-                    label: 'Wake',
-                    value: _wakeTime,
-                    onTap: () =>
-                        _pickTime(_wakeTime, (time) => _wakeTime = time),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _TimeButton(
-                    label: 'Sleep',
-                    value: _sleepTime,
-                    onTap: () =>
-                        _pickTime(_sleepTime, (time) => _sleepTime = time),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            if (_goalType == GoalType.pregnancySafe)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 20),
-                child: Text(
-                  'Pregnancy-safe mode adds a gentle buffer. Please consult a healthcare professional for specific needs.',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        height: 1.3,
-                      ),
-                  textAlign: TextAlign.center,
-                ),
+              const SizedBox(height: 24),
+
+              // Age
+              _CupertinoNumberField(
+                controller: _ageController,
+                label: 'Age',
+                suffix: 'years',
               ),
-            const SizedBox(height: 8),
-            FilledButton.icon(
-              onPressed: () => _finish(predictedGoal),
-              icon: const Icon(Icons.arrow_forward_rounded),
-              label: Text('Start with $predictedGoal ml / day'),
-            ),
-            const SizedBox(height: 32),
-          ],
+              const SizedBox(height: 24),
+
+              // Activity Level Select
+              _SlidingSegmentedField<ActivityLevel>(
+                label: 'Activity Level',
+                value: _activityLevel,
+                values: ActivityLevel.values,
+                labelFor: _activityLabel,
+                onChanged: (v) => setState(() => _activityLevel = v),
+              ),
+              const SizedBox(height: 24),
+
+              // Climate Select
+              _SlidingSegmentedField<Climate>(
+                label: 'Climate',
+                value: _climate,
+                values: Climate.values,
+                labelFor: _climateLabel,
+                onChanged: (v) => setState(() => _climate = v),
+              ),
+              const SizedBox(height: 24),
+
+              // Goal Focus Select
+              _SlidingSegmentedField<GoalType>(
+                label: 'Goal Focus',
+                value: _goalType,
+                values: GoalType.values,
+                labelFor: _goalLabel,
+                onChanged: (v) => setState(() => _goalType = v),
+              ),
+              const SizedBox(height: 28),
+
+              // Wake / Sleep times
+              Row(
+                children: [
+                  Expanded(
+                    child: _TimeButton(
+                      label: 'Wake',
+                      value: _wakeTime,
+                      onTap: () =>
+                          _pickTime(_wakeTime, (time) => _wakeTime = time),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _TimeButton(
+                      label: 'Sleep',
+                      value: _sleepTime,
+                      onTap: () =>
+                          _pickTime(_sleepTime, (time) => _sleepTime = time),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 28),
+
+              if (_goalType == GoalType.pregnancySafe)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 20),
+                  child: Text(
+                    'Pregnancy-safe mode adds a gentle buffer. Please consult a healthcare professional for specific needs.',
+                    style: TextStyle(
+                      color: CupertinoDynamicColor.resolve(
+                        CupertinoColors.secondaryLabel,
+                        context,
+                      ),
+                      fontSize: 12,
+                      height: 1.3,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+
+              const SizedBox(height: 12),
+              CupertinoButton.filled(
+                borderRadius: BorderRadius.circular(14),
+                onPressed: () => _finish(predictedGoal),
+                child: Text('Start with $predictedGoal ml / day', style: const TextStyle(fontWeight: FontWeight.bold)),
+              ),
+              const SizedBox(height: 32),
+            ],
+          ),
         ),
       ),
     );
@@ -171,9 +186,46 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     TimeOfDay initial,
     ValueChanged<TimeOfDay> update,
   ) async {
-    final picked = await showTimePicker(context: context, initialTime: initial);
-    if (picked == null) return;
-    setState(() => update(picked));
+    final initialDateTime = DateTime(2026, 1, 1, initial.hour, initial.minute);
+    await showCupertinoModalPopup<void>(
+      context: context,
+      builder: (context) {
+        final isDark = CupertinoTheme.brightnessOf(context) == Brightness.dark;
+        return Container(
+          height: 280,
+          color: isDark ? const Color(0xFF1C1C1E) : CupertinoColors.systemBackground,
+          child: Column(
+            children: [
+              Container(
+                color: isDark ? const Color(0xFF2C2C2E) : const Color(0xFFF2F2F7),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    CupertinoButton(
+                      child: const Text('Cancel', style: TextStyle(color: CupertinoColors.destructiveRed)),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                    CupertinoButton(
+                      child: const Text('Done', style: TextStyle(fontWeight: FontWeight.bold)),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: CupertinoDatePicker(
+                  mode: CupertinoDatePickerMode.time,
+                  initialDateTime: initialDateTime,
+                  onDateTimeChanged: (dateTime) {
+                    update(TimeOfDay(hour: dateTime.hour, minute: dateTime.minute));
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   Future<void> _finish(int dailyGoalMl) async {
@@ -204,6 +256,9 @@ class _LogoMark extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+    final secondary = Theme.of(context).colorScheme.secondary;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -216,14 +271,11 @@ class _LogoMark extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [
-                Theme.of(context).colorScheme.secondary,
-                Theme.of(context).colorScheme.primary,
-              ],
+              colors: [secondary, primary],
             ),
             boxShadow: [
               BoxShadow(
-                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                color: primary.withValues(alpha: 0.3),
                 blurRadius: 16,
                 offset: const Offset(0, 4),
               ),
@@ -231,26 +283,31 @@ class _LogoMark extends StatelessWidget {
           ),
           child: const Center(
             child: Icon(
-              Icons.water_drop_rounded,
+              CupertinoIcons.drop_fill,
               color: Colors.white,
               size: 42,
             ),
           ),
         ),
         const SizedBox(height: 20),
-        Text(
+        const Text(
           'Personalize HydroFlow',
-          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.w900,
-                letterSpacing: -1.0,
-              ),
+          style: TextStyle(
+            fontWeight: FontWeight.w900,
+            fontSize: 24,
+            letterSpacing: -1.0,
+          ),
         ),
         const SizedBox(height: 4),
         Text(
           'A personalized loop hydration, tuned to $goal ml.',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+          style: TextStyle(
+            color: CupertinoDynamicColor.resolve(
+              CupertinoColors.secondaryLabel,
+              context,
+            ),
+            fontSize: 14,
+          ),
           textAlign: TextAlign.center,
         ),
       ],
@@ -258,8 +315,8 @@ class _LogoMark extends StatelessWidget {
   }
 }
 
-class _NumberField extends StatelessWidget {
-  const _NumberField({
+class _CupertinoNumberField extends StatelessWidget {
+  const _CupertinoNumberField({
     required this.controller,
     required this.label,
     required this.suffix,
@@ -273,26 +330,44 @@ class _NumberField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
-      controller: controller,
-      keyboardType: TextInputType.number,
-      onChanged: onChanged,
-      decoration: InputDecoration(
-        labelText: label,
-        suffixText: suffix,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      ),
-      validator: (value) {
-        final number = double.tryParse(value ?? '');
-        if (number == null || number <= 0) return 'Enter valid value';
-        return null;
-      },
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
+        ),
+        Material(
+          color: Colors.transparent,
+          child: TextFormField(
+            controller: controller,
+            keyboardType: TextInputType.number,
+            onChanged: onChanged,
+            decoration: InputDecoration(
+              suffixText: suffix,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            ),
+            validator: (value) {
+              final number = double.tryParse(value ?? '');
+              if (number == null || number <= 0) return 'Enter valid value';
+              return null;
+            },
+          ),
+        ),
+      ],
     );
   }
 }
 
-class _SegmentedField<T extends Object> extends StatelessWidget {
-  const _SegmentedField({
+class _SlidingSegmentedField<T extends Object> extends StatelessWidget {
+  const _SlidingSegmentedField({
     required this.label,
     required this.value,
     required this.values,
@@ -315,26 +390,31 @@ class _SegmentedField<T extends Object> extends StatelessWidget {
           padding: const EdgeInsets.only(left: 4, bottom: 8),
           child: Text(
             label,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.primary,
+            ),
           ),
         ),
         SizedBox(
           width: double.infinity,
-          child: Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: values.map<Widget>((item) {
-              final isSelected = item == value;
-              return ChoiceChip(
-                selected: isSelected,
-                label: Text(labelFor(item)),
-                onSelected: (_) => onChanged(item),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              );
-            }).toList(),
+          child: CupertinoSlidingSegmentedControl<T>(
+            groupValue: value,
+            children: {
+              for (final val in values)
+                val: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                  child: Text(
+                    labelFor(val),
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+            },
+            onValueChanged: (val) {
+              if (val != null) onChanged(val);
+            },
           ),
         ),
       ],
@@ -355,26 +435,41 @@ class _TimeButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return OutlinedButton(
+    final isDark = CupertinoTheme.brightnessOf(context) == Brightness.dark;
+    return CupertinoButton(
+      padding: EdgeInsets.zero,
+      color: isDark ? const Color(0xFF2C2C2E) : Colors.white,
+      borderRadius: BorderRadius.circular(12),
       onPressed: onTap,
-      style: OutlinedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 14),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        side: BorderSide(
-          color: Theme.of(context).colorScheme.outlineVariant,
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.schedule_rounded,
-              size: 18, color: Theme.of(context).colorScheme.primary),
-          const SizedBox(width: 8),
-          Text(
-            '$label: ${value.format(context)}',
-            style: const TextStyle(fontWeight: FontWeight.bold),
+      child: Container(
+        alignment: Alignment.center,
+        height: 52,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: CupertinoDynamicColor.resolve(CupertinoColors.separator, context),
+            width: 1.0,
           ),
-        ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              CupertinoIcons.clock_fill,
+              size: 16,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              '$label: ${value.format(context)}',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+                color: CupertinoDynamicColor.resolve(CupertinoColors.label, context),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -401,6 +496,6 @@ String _goalLabel(GoalType type) {
     GoalType.general => 'General',
     GoalType.weightLoss => 'Weight loss',
     GoalType.fitness => 'Fitness',
-    GoalType.pregnancySafe => 'Pregnancy-safe',
+    GoalType.pregnancySafe => 'Pregnancy',
   };
 }

@@ -1,18 +1,12 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../history/history_screen.dart';
 import '../settings/settings_screen.dart';
 import 'home_dashboard.dart';
 
-class HydroShell extends StatefulWidget {
+class HydroShell extends StatelessWidget {
   const HydroShell({super.key});
-
-  @override
-  State<HydroShell> createState() => _HydroShellState();
-}
-
-class _HydroShellState extends State<HydroShell> {
-  int _index = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -22,29 +16,32 @@ class _HydroShellState extends State<HydroShell> {
       const SettingsScreen(),
     ];
 
-    return Scaffold(
-      body: IndexedStack(index: _index, children: screens),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _index,
-        onDestinationSelected: (value) => setState(() => _index = value),
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.water_drop_outlined),
-            selectedIcon: Icon(Icons.water_drop_rounded),
+    return CupertinoTabScaffold(
+      tabBar: CupertinoTabBar(
+        activeColor: Theme.of(context).colorScheme.primary,
+        inactiveColor: const Color(0xFF8E8E93),
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(CupertinoIcons.drop),
+            activeIcon: Icon(CupertinoIcons.drop_fill),
             label: 'Today',
           ),
-          NavigationDestination(
-            icon: Icon(Icons.insights_outlined),
-            selectedIcon: Icon(Icons.insights_rounded),
+          BottomNavigationBarItem(
+            icon: Icon(CupertinoIcons.chart_bar),
+            activeIcon: Icon(CupertinoIcons.chart_bar_fill),
             label: 'History',
           ),
-          NavigationDestination(
-            icon: Icon(Icons.tune_outlined),
-            selectedIcon: Icon(Icons.tune_rounded),
+          BottomNavigationBarItem(
+            icon: Icon(CupertinoIcons.slider_horizontal_3),
             label: 'Settings',
           ),
         ],
       ),
+      tabBuilder: (context, index) {
+        return CupertinoTabView(
+          builder: (context) => screens[index],
+        );
+      },
     );
   }
 }

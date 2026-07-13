@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -26,11 +27,9 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard> {
   @override
   void initState() {
     super.initState();
-    // Kick off weather fetch after first frame (non-blocking)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final state = ref.read(hydroControllerProvider);
       final fetchState = state.settings.weatherFetchState;
-      // Auto-fetch if idle or if cached data is stale
       if (fetchState == WeatherFetchState.idle ||
           (state.settings.weather != null &&
               !state.settings.weather!.isFresh)) {
@@ -52,116 +51,116 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard> {
       _selectedDrink = DrinkKind.water.option;
     }
 
-    return Scaffold(
-      body: SafeArea(
-        child: CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          slivers: [
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'HydroFlow',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .headlineMedium
-                                    ?.copyWith(
-                                      fontWeight: FontWeight.w900,
-                                      letterSpacing: -0.5,
-                                    ),
-                              ),
-                              Text(
-                                copy,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
-                                    ?.copyWith(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onSurfaceVariant,
-                                    ),
-                              ),
-                            ],
+    return CupertinoPageScaffold(
+      child: CustomScrollView(
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
+        slivers: [
+          CupertinoSliverNavigationBar(
+            largeTitle: const Text('HydroFlow'),
+            border: null,
+            backgroundColor: CupertinoTheme.of(context)
+                .barBackgroundColor
+                .withValues(alpha: 0.82),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _StreakBadge(entries: state.entries),
+                const SizedBox(width: 8),
+                CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  onPressed: _showCustomAmountSheet,
+                  child: const Icon(CupertinoIcons.add, size: 26),
+                ),
+              ],
+            ),
+          ),
+          SliverSafeArea(
+            top: false,
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 10),
+                      Text(
+                        copy,
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: CupertinoDynamicColor.resolve(
+                            CupertinoColors.secondaryLabel,
+                            context,
                           ),
+                          fontWeight: FontWeight.w500,
                         ),
-                        _StreakBadge(entries: state.entries),
-                      ],
-                    ),
-                    const SizedBox(height: 28),
-                    // ── Location permission card ─────────────────────────────
-                    if (showPermissionCard) const LocationPermissionCard(),
-                    // ── Weather card (when data is available) ────────────────
-                    if (weather != null) WeatherCard(weather: weather),
-                    const SizedBox(height: 28),
-                    _MascotHero(
-                      mascotName: state.settings.mascotName,
-                      mood: state.mascotMood,
-                      progress: progress,
-                      copy: copy,
-                    ),
-                    const SizedBox(height: 28),
-                    Center(
-                      child: _WaveProgress(
-                        progress: progress,
-                        intake: _formatAmount(
-                          state.todayEffectiveMl,
-                          state.settings.unitSystem,
-                        ),
-                        goal: _formatAmount(
-                          adjustedGoal,
-                          state.settings.unitSystem,
-                        ),
-                        isWeatherAdjusted: weather != null,
                       )
                           .animate()
-                          .fadeIn(duration: 450.ms)
-                          .scale(begin: const Offset(.96, .96)),
-                    ),
-                    const SizedBox(height: 28),
-                    _DrinkPicker(
-                      drinks: state.drinkOptions,
-                      selected: _selectedDrink,
-                      onSelected: (drink) =>
-                          setState(() => _selectedDrink = drink),
-                    ),
-                    const SizedBox(height: 20),
-                    _QuickAdds(
-                      unitSystem: state.settings.unitSystem,
-                      onAdd: (amount) => _add(amount, _selectedDrink),
-                    ),
-                    const SizedBox(height: 28),
-                    _TodayEntries(entries: state.todayEntries),
-                    const SizedBox(height: 20),
-                    if (state.settings.shouldShowAds)
-                      _AdBanner(
-                        onReward: () => ref
-                            .read(hydroControllerProvider.notifier)
-                            .grantRewardedAdFreeHour(),
+                          .fadeIn(duration: 400.ms)
+                          .slideY(begin: 0.1, end: 0),
+                      const SizedBox(height: 24),
+                      // ── Location permission card ─────────────────────────────
+                      if (showPermissionCard) const LocationPermissionCard(),
+                      // ── Weather card (when data is available) ────────────────
+                      if (weather != null) WeatherCard(weather: weather),
+                      const SizedBox(height: 16),
+                      _MascotHero(
+                        mascotName: state.settings.mascotName,
+                        mood: state.mascotMood,
+                        progress: progress,
+                        copy: copy,
                       ),
-                    const SizedBox(height: 24),
-                  ],
+                      const SizedBox(height: 32),
+                      Center(
+                        child: _WaveProgress(
+                          progress: progress,
+                          intake: _formatAmount(
+                            state.todayEffectiveMl,
+                            state.settings.unitSystem,
+                          ),
+                          goal: _formatAmount(
+                            adjustedGoal,
+                            state.settings.unitSystem,
+                          ),
+                          isWeatherAdjusted: weather != null,
+                        )
+                            .animate()
+                            .fadeIn(duration: 500.ms)
+                            .scale(begin: const Offset(.95, .95)),
+                      ),
+                      const SizedBox(height: 36),
+                      _SectionHeader(title: 'CHOOSE BEVERAGE'),
+                      _DrinkPicker(
+                        drinks: state.drinkOptions,
+                        selected: _selectedDrink,
+                        onSelected: (drink) =>
+                            setState(() => _selectedDrink = drink),
+                      ),
+                      const SizedBox(height: 24),
+                      _SectionHeader(title: 'QUICK LOG'),
+                      _QuickAdds(
+                        unitSystem: state.settings.unitSystem,
+                        onAdd: (amount) => _add(amount, _selectedDrink),
+                      ),
+                      const SizedBox(height: 36),
+                      _TodayEntries(entries: state.todayEntries),
+                      const SizedBox(height: 24),
+                      if (state.settings.shouldShowAds)
+                        _AdBanner(
+                          onReward: () => ref
+                              .read(hydroControllerProvider.notifier)
+                              .grantRewardedAdFreeHour(),
+                        ),
+                      const SizedBox(height: 32),
+                    ],
+                  ),
                 ),
-              ),
+              ]),
             ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _showCustomAmountSheet,
-        elevation: 2,
-        icon: const Icon(Icons.add_rounded),
-        label: const Text('Custom'),
+          ),
+        ],
       ),
     );
   }
@@ -173,44 +172,54 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard> {
 
   Future<void> _showCustomAmountSheet() async {
     final controller = TextEditingController(text: '300');
-    final amount = await showModalBottomSheet<int>(
+    final amount = await showCupertinoModalPopup<int>(
       context: context,
-      showDragHandle: true,
       builder: (context) {
-        return Padding(
-          padding: EdgeInsets.fromLTRB(
-            20,
-            8,
-            20,
-            20 + MediaQuery.viewInsetsOf(context).bottom,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                'Custom amount',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-              const SizedBox(height: 14),
-              TextField(
+        return CupertinoActionSheet(
+          title: const Text('Custom Hydration Amount'),
+          message: Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: Material(
+              color: Colors.transparent,
+              child: CupertinoTextField(
                 controller: controller,
                 autofocus: true,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  suffixText: 'ml',
-                  hintText: 'Amount',
+                prefix: const Padding(
+                  padding: EdgeInsets.only(left: 12),
+                  child: Icon(
+                    CupertinoIcons.drop_fill,
+                    color: CupertinoColors.systemBlue,
+                    size: 20,
+                  ),
+                ),
+                suffix: const Padding(
+                  padding: EdgeInsets.only(right: 12),
+                  child: Text('ml', style: TextStyle(color: CupertinoColors.secondaryLabel)),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                decoration: BoxDecoration(
+                  color: CupertinoDynamicColor.resolve(
+                    CupertinoColors.systemGroupedBackground,
+                    context,
+                  ),
+                  borderRadius: BorderRadius.circular(10),
                 ),
               ),
-              const SizedBox(height: 16),
-              FilledButton(
-                onPressed: () =>
-                    Navigator.pop(context, int.tryParse(controller.text)),
-                child: const Text('Add drink'),
-              ),
-            ],
+            ),
+          ),
+          actions: [
+            CupertinoActionSheetAction(
+              onPressed: () =>
+                  Navigator.pop(context, int.tryParse(controller.text)),
+              isDefaultAction: true,
+              child: const Text('Add Beverage'),
+            ),
+          ],
+          cancelButton: CupertinoActionSheetAction(
+            onPressed: () => Navigator.pop(context),
+            isDestructiveAction: true,
+            child: const Text('Cancel'),
           ),
         );
       },
@@ -218,6 +227,31 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard> {
     if (amount != null && amount > 0) {
       await _add(amount, _selectedDrink);
     }
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({required this.title});
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4, bottom: 12),
+      child: Text(
+        title,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 1.0,
+          color: CupertinoDynamicColor.resolve(
+            CupertinoColors.secondaryLabel,
+            context,
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -243,55 +277,72 @@ class _MascotHero extends StatelessWidget {
       MascotMood.celebrating => 'Goal complete. I am doing a tiny splash dance.',
     };
 
-    return Row(
-      children: [
-        Text(mascotEmoji(mood), style: const TextStyle(fontSize: 48))
-            .animate(onPlay: (controller) => controller.repeat(reverse: true))
-            .scale(
-              begin: const Offset(.92, .92),
-              end: const Offset(1.04, 1.04),
-              duration: 1500.ms,
-            ),
-        const SizedBox(width: 14),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '$mascotName says:',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.5,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
+    final isDark = CupertinoTheme.brightnessOf(context) == Brightness.dark;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF2C2C2E) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Text(mascotEmoji(mood), style: const TextStyle(fontSize: 44))
+              .animate(onPlay: (controller) => controller.repeat(reverse: true))
+              .scale(
+                begin: const Offset(.92, .92),
+                end: const Offset(1.04, 1.04),
+                duration: 1500.ms,
               ),
-              const SizedBox(height: 2),
-              Text(
-                message,
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      height: 1.2,
-                    ),
-              ),
-              const SizedBox(height: 8),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: LinearProgressIndicator(
-                  value: progress,
-                  minHeight: 6,
-                  backgroundColor: Theme.of(context)
-                      .colorScheme
-                      .surfaceContainerHighest
-                      .withValues(alpha: 0.5),
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    Theme.of(context).colorScheme.primary,
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '$mascotName says:',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 11,
+                    letterSpacing: 0.5,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 2),
+                Text(
+                  message,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                    height: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: LinearProgressIndicator(
+                    value: progress,
+                    minHeight: 6,
+                    backgroundColor: isDark
+                        ? const Color(0x20FFFFFF)
+                        : const Color(0x0F000000),
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -317,13 +368,13 @@ class _WaveProgress extends StatelessWidget {
       curve: Curves.easeOutCubic,
       builder: (context, value, child) {
         return SizedBox(
-          width: 250,
-          height: 250,
+          width: 230,
+          height: 230,
           child: Stack(
             alignment: Alignment.center,
             children: [
               CustomPaint(
-                size: const Size.square(250),
+                size: const Size.square(230),
                 painter: _WavePainter(
                   progress: value,
                   color: Theme.of(context).colorScheme.primary,
@@ -335,42 +386,52 @@ class _WaveProgress extends StatelessWidget {
                 children: [
                   Text(
                     '${(value * 100).round()}%',
-                    style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: -1,
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
+                    style: const TextStyle(
+                      fontSize: 48,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: -1.5,
+                    ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     '$intake of $goal',
-                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
-                  if (isWeatherAdjusted) ...
-                    [
-                      const SizedBox(height: 4),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.thermostat_rounded,
-                            size: 12,
-                            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.7),
-                          ),
-                          const SizedBox(width: 3),
-                          Text(
-                            'weather adjusted',
-                            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.7),
-                                  fontSize: 10,
-                                ),
-                          ),
-                        ],
+                    style: TextStyle(
+                      color: CupertinoDynamicColor.resolve(
+                        CupertinoColors.secondaryLabel,
+                        context,
                       ),
-                    ],
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
+                  ),
+                  if (isWeatherAdjusted) ...[
+                    const SizedBox(height: 4),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          CupertinoIcons.thermometer,
+                          size: 13,
+                          color: Theme.of(context)
+                              .colorScheme
+                              .primary
+                              .withValues(alpha: 0.8),
+                        ),
+                        const SizedBox(width: 2),
+                        Text(
+                          'weather adjusted',
+                          style: TextStyle(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .primary
+                                .withValues(alpha: 0.8),
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ],
@@ -398,7 +459,6 @@ class _WavePainter extends CustomPainter {
     final center = rect.center;
     final radius = size.shortestSide / 2;
 
-    // Background soft radial gradient glow
     final bgPaint = Paint()
       ..shader = RadialGradient(
         colors: [
@@ -416,10 +476,8 @@ class _WavePainter extends CustomPainter {
     canvas.save();
     canvas.clipPath(circle);
 
-    // Wave drawing
     final waterTop = size.height * (1 - progress);
 
-    // Background wave (Secondary)
     final backPath = Path()..moveTo(0, waterTop);
     for (var x = 0.0; x <= size.width; x += 4) {
       final y = waterTop +
@@ -442,7 +500,6 @@ class _WavePainter extends CustomPainter {
       ).createShader(rect);
     canvas.drawPath(backPath, backWater);
 
-    // Foreground wave (Primary)
     final forePath = Path()..moveTo(0, waterTop);
     for (var x = 0.0; x <= size.width; x += 4) {
       final y = waterTop +
@@ -467,14 +524,12 @@ class _WavePainter extends CustomPainter {
 
     canvas.restore();
 
-    // Outer track glow ring
     final trackPaint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3
       ..color = color.withValues(alpha: .1);
     canvas.drawCircle(center, radius - 2, trackPaint);
 
-    // Active progress arc
     if (progress > 0) {
       final progressPaint = Paint()
         ..style = PaintingStyle.stroke
@@ -521,6 +576,7 @@ class _DrinkPicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = CupertinoTheme.brightnessOf(context) == Brightness.dark;
     return SizedBox(
       height: 98,
       child: ListView.separated(
@@ -537,21 +593,18 @@ class _DrinkPicker extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeOutBack,
+                  duration: const Duration(milliseconds: 250),
+                  curve: Curves.easeOutQuint,
                   width: 58,
                   height: 58,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: isSelected
                         ? drink.color.withValues(alpha: .18)
-                        : Theme.of(context)
-                            .colorScheme
-                            .surfaceContainerHighest
-                            .withValues(alpha: .4),
+                        : (isDark ? const Color(0xFF2C2C2E) : const Color(0xFFE5E5EA)),
                     border: Border.all(
                       color: isSelected ? drink.color : Colors.transparent,
-                      width: 2,
+                      width: 2.2,
                     ),
                     boxShadow: isSelected
                         ? [
@@ -573,13 +626,20 @@ class _DrinkPicker extends StatelessWidget {
                 const SizedBox(height: 6),
                 Text(
                   drink.label,
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        fontWeight:
-                            isSelected ? FontWeight.bold : FontWeight.normal,
-                        color: isSelected
-                            ? Theme.of(context).colorScheme.onSurface
-                            : Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight:
+                        isSelected ? FontWeight.bold : FontWeight.w500,
+                    color: isSelected
+                        ? CupertinoDynamicColor.resolve(
+                            CupertinoColors.label,
+                            context,
+                          )
+                        : CupertinoDynamicColor.resolve(
+                            CupertinoColors.secondaryLabel,
+                            context,
+                          ),
+                  ),
                 ),
               ],
             ),
@@ -599,31 +659,39 @@ class _QuickAdds extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const amounts = [100, 250, 500, 1000];
+    final isDark = CupertinoTheme.brightnessOf(context) == Brightness.dark;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: amounts.map((amount) {
         return Expanded(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: OutlinedButton(
+            child: CupertinoButton(
+              padding: EdgeInsets.zero,
+              color: isDark ? const Color(0xFF2C2C2E) : Colors.white,
+              borderRadius: BorderRadius.circular(12),
               onPressed: () => onAdd(amount),
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: const StadiumBorder(),
-                side: BorderSide(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .primary
-                      .withValues(alpha: .25),
-                  width: 1.5,
+              child: Container(
+                alignment: Alignment.center,
+                height: 44,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .primary
+                        .withValues(alpha: .25),
+                    width: 1.2,
+                  ),
                 ),
-              ),
-              child: Text(
-                '+${_formatAmount(amount, unitSystem).replaceAll(' ', '')}',
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
+                child: Text(
+                  '+${_formatAmount(amount, unitSystem).replaceAll(' ', '')}',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
               ),
             ),
           ),
@@ -640,37 +708,47 @@ class _TodayEntries extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isDark = CupertinoTheme.brightnessOf(context) == Brightness.dark;
+
     if (entries.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.opacity_rounded,
-                size: 32,
-                color: Theme.of(context)
-                    .colorScheme
-                    .primary
-                    .withValues(alpha: 0.35),
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(28),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF2C2C2E) : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              CupertinoIcons.drop,
+              size: 32,
+              color: Theme.of(context)
+                  .colorScheme
+                  .primary
+                  .withValues(alpha: 0.35),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'No drinks logged yet',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 15,
               ),
-              const SizedBox(height: 8),
-              Text(
-                'No drinks logged yet',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              'Start with one small glass. Tiny loops count.',
+              style: TextStyle(
+                color: CupertinoDynamicColor.resolve(
+                  CupertinoColors.secondaryLabel,
+                  context,
+                ),
+                fontSize: 12,
               ),
-              const SizedBox(height: 2),
-              Text(
-                'Start with one small glass. Tiny loops count.',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       );
     }
@@ -679,66 +757,96 @@ class _TodayEntries extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(bottom: 10, left: 4),
+          padding: const EdgeInsets.only(bottom: 12, left: 4),
           child: Text(
             'TODAY\'S LOGS',
-            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 1.0,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.0,
+              color: CupertinoDynamicColor.resolve(
+                CupertinoColors.secondaryLabel,
+                context,
+              ),
+            ),
           ),
         ),
-        ListView.separated(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: entries.take(5).length,
-          separatorBuilder: (context, index) => Divider(
-            height: 1,
-            thickness: 1,
-            color: Theme.of(context)
-                .colorScheme
-                .surfaceContainerHighest
-                .withValues(alpha: 0.3),
+        Container(
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF2C2C2E) : Colors.white,
+            borderRadius: BorderRadius.circular(16),
           ),
-          itemBuilder: (context, index) {
-            final entry = entries[index];
-            return ListTile(
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-              leading: Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: entry.drink.color.withValues(alpha: .12),
-                ),
-                child: Center(
-                  child: Text(
-                    entry.drink.emoji,
-                    style: const TextStyle(fontSize: 20),
-                  ),
-                ),
-              ),
-              title: Text(
-                entry.drink.label,
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
-              subtitle: Text(
-                '${entry.effectiveMl} ml effective hydration',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+          child: ListView.separated(
+            shrinkWrap: true,
+            padding: EdgeInsets.zero,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: entries.take(5).length,
+            separatorBuilder: (context, index) => Container(
+              height: 1,
+              color: isDark ? const Color(0x1AFFFFFF) : const Color(0x0D000000),
+            ),
+            itemBuilder: (context, index) {
+              final entry = entries[index];
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 42,
+                      height: 42,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: entry.drink.color.withValues(alpha: .12),
+                      ),
+                      child: Center(
+                        child: Text(
+                          entry.drink.emoji,
+                          style: const TextStyle(fontSize: 20),
+                        ),
+                      ),
                     ),
-              ),
-              trailing: IconButton(
-                tooltip: 'Remove',
-                icon: const Icon(Icons.close_rounded, size: 20),
-                onPressed: () => ref
-                    .read(hydroControllerProvider.notifier)
-                    .removeEntry(entry.id),
-              ),
-            );
-          },
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            entry.drink.label,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 15,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '${entry.effectiveMl} ml effective hydration',
+                            style: TextStyle(
+                              color: CupertinoDynamicColor.resolve(
+                                CupertinoColors.secondaryLabel,
+                                context,
+                              ),
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    CupertinoButton(
+                      padding: EdgeInsets.zero,
+                      child: const Icon(
+                        CupertinoIcons.xmark_circle,
+                        size: 22,
+                        color: Color(0xFF8E8E93),
+                      ),
+                      onPressed: () => ref
+                          .read(hydroControllerProvider.notifier)
+                          .removeEntry(entry.id),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
         ),
       ],
     );
@@ -799,7 +907,7 @@ class _AdBannerState extends State<_AdBanner> {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final isDark = CupertinoTheme.brightnessOf(context) == Brightness.dark;
 
     if (_isLoaded && _bannerAd != null) {
       return Column(
@@ -814,16 +922,23 @@ class _AdBannerState extends State<_AdBanner> {
           const SizedBox(height: 6),
           Align(
             alignment: Alignment.centerRight,
-            child: TextButton.icon(
+            child: CupertinoButton(
+              padding: EdgeInsets.zero,
               onPressed: widget.onReward,
-              icon: const Icon(Icons.star_rounded, size: 14),
-              label: const Text(
-                'Remove ads for 1 hour',
-                style: TextStyle(fontSize: 11),
-              ),
-              style: TextButton.styleFrom(
-                visualDensity: VisualDensity.compact,
-                padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(CupertinoIcons.star_fill, size: 12, color: Theme.of(context).colorScheme.primary),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Remove ads for 1 hour',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -834,31 +949,42 @@ class _AdBannerState extends State<_AdBanner> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        color: scheme.surfaceContainerHighest.withValues(alpha: .4),
+        borderRadius: BorderRadius.circular(16),
+        color: isDark ? const Color(0xFF2C2C2E) : Colors.white,
       ),
       child: Row(
         children: [
           Icon(
-            Icons.ads_click_rounded,
-            color: scheme.primary.withValues(alpha: 0.8),
-            size: 20,
+            CupertinoIcons.device_phone_portrait,
+            color: Theme.of(context).colorScheme.primary,
+            size: 22,
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               'Ad space reserved. Remove ads for 1 hr.',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                  ),
+              style: TextStyle(
+                color: CupertinoDynamicColor.resolve(
+                  CupertinoColors.secondaryLabel,
+                  context,
+                ),
+                fontSize: 12,
+              ),
             ),
           ),
-          TextButton(
+          CupertinoButton(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
             onPressed: widget.onReward,
-            style: TextButton.styleFrom(
-              visualDensity: VisualDensity.compact,
+            child: Text(
+              'Watch Ad',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.primary,
+              ),
             ),
-            child: const Text('Watch Ad'),
           ),
         ],
       ),
@@ -875,29 +1001,30 @@ class _StreakBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final streak = _streakDays(entries);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(999),
         color: Theme.of(context)
             .colorScheme
             .primaryContainer
-            .withValues(alpha: 0.7),
+            .withValues(alpha: 0.72),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            Icons.local_fire_department_rounded,
-            size: 18,
+            CupertinoIcons.flame_fill,
+            size: 15,
             color: Theme.of(context).colorScheme.primary,
           ),
           const SizedBox(width: 4),
           Text(
             '$streak d',
-            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: Theme.of(context).colorScheme.onPrimaryContainer,
-                ),
+            style: TextStyle(
+              fontWeight: FontWeight.w800,
+              fontSize: 12,
+              color: Theme.of(context).colorScheme.onPrimaryContainer,
+            ),
           ),
         ],
       ),
