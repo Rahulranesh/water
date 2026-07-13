@@ -65,17 +65,10 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard> {
               backgroundColor: CupertinoTheme.of(context)
                   .barBackgroundColor
                   .withValues(alpha: 0.82),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _StreakBadge(entries: state.entries),
-                  const SizedBox(width: 8),
-                  CupertinoButton(
-                    padding: EdgeInsets.zero,
-                    onPressed: _showCustomAmountSheet,
-                    child: const Icon(CupertinoIcons.add, size: 26),
-                  ),
-                ],
+              trailing: CupertinoButton(
+                padding: EdgeInsets.zero,
+                onPressed: _showCustomAmountSheet,
+                child: const Icon(CupertinoIcons.add, size: 24),
               ),
             ),
             SliverSafeArea(
@@ -87,17 +80,26 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const SizedBox(height: 10),
-                        Text(
-                          copy,
-                          style: TextStyle(
-                            fontSize: 15,
-                            color: CupertinoDynamicColor.resolve(
-                              CupertinoColors.secondaryLabel,
-                              context,
+                        const SizedBox(height: 12),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                copy,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: CupertinoDynamicColor.resolve(
+                                    CupertinoColors.secondaryLabel,
+                                    context,
+                                  ),
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                             ),
-                            fontWeight: FontWeight.w500,
-                          ),
+                            const SizedBox(width: 16),
+                            _StreakBadge(entries: state.entries),
+                          ],
                         )
                             .animate()
                             .fadeIn(duration: 400.ms)
@@ -175,55 +177,57 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard> {
 
   Future<void> _showCustomAmountSheet() async {
     final controller = TextEditingController(text: '300');
-    final amount = await showCupertinoModalPopup<int>(
+    final amount = await showCupertinoDialog<int>(
       context: context,
+      barrierDismissible: true,
       builder: (context) {
-        return CupertinoActionSheet(
-          title: const Text('Custom Hydration Amount'),
-          message: Padding(
-            padding: const EdgeInsets.only(top: 12),
+        return CupertinoAlertDialog(
+          title: const Text('Custom Hydration'),
+          content: Padding(
+            padding: const EdgeInsets.only(top: 16),
             child: Material(
               color: Colors.transparent,
               child: CupertinoTextField(
                 controller: controller,
                 autofocus: true,
-                keyboardType: TextInputType.number,
+                keyboardType: const TextInputType.numberWithOptions(decimal: false, signed: false),
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 prefix: const Padding(
-                  padding: EdgeInsets.only(left: 12),
+                  padding: EdgeInsets.only(left: 10),
                   child: Icon(
                     CupertinoIcons.drop_fill,
                     color: CupertinoColors.systemBlue,
-                    size: 20,
+                    size: 18,
                   ),
                 ),
                 suffix: const Padding(
-                  padding: EdgeInsets.only(right: 12),
-                  child: Text('ml', style: TextStyle(color: CupertinoColors.secondaryLabel)),
+                  padding: EdgeInsets.only(right: 10),
+                  child: Text('ml', style: TextStyle(color: CupertinoColors.secondaryLabel, fontWeight: FontWeight.bold)),
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
                 decoration: BoxDecoration(
                   color: CupertinoDynamicColor.resolve(
                     CupertinoColors.systemGroupedBackground,
                     context,
                   ),
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(8),
                 ),
               ),
             ),
           ),
           actions: [
-            CupertinoActionSheetAction(
+            CupertinoDialogAction(
+              onPressed: () => Navigator.pop(context),
+              isDestructiveAction: true,
+              child: const Text('Cancel'),
+            ),
+            CupertinoDialogAction(
               onPressed: () =>
                   Navigator.pop(context, int.tryParse(controller.text)),
               isDefaultAction: true,
-              child: const Text('Add Beverage'),
+              child: const Text('Add'),
             ),
           ],
-          cancelButton: CupertinoActionSheetAction(
-            onPressed: () => Navigator.pop(context),
-            isDestructiveAction: true,
-            child: const Text('Cancel'),
-          ),
         );
       },
     );

@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/models/hydro_state.dart';
@@ -37,88 +38,115 @@ class SettingsScreen extends ConsumerWidget {
               top: false,
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
-                CupertinoListSection.insetGrouped(
-                  header: const Text('PROFILE & MASCOT'),
-                  children: [
-                    _MascotTile(state: state),
-                    CupertinoListTile.notched(
-                      title: const Text('Daily Goal target'),
-                      subtitle: Text(
-                        'Target is ${state.settings.profile?.dailyGoalMl ?? 2500} ml. Tap to recalculate.',
-                        style: const TextStyle(fontSize: 12),
+                  CupertinoListSection.insetGrouped(
+                    header: const Text('PROFILE & MASCOT'),
+                    children: [
+                      _MascotTile(state: state),
+                      CupertinoListTile.notched(
+                        leading: const Icon(CupertinoIcons.person_crop_circle, color: CupertinoColors.systemBlue),
+                        title: const Text('Daily Goal target'),
+                        subtitle: Text(
+                          'Target is ${state.settings.profile?.dailyGoalMl ?? 2500} ml. Tap to recalculate.',
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                        trailing: CupertinoButton(
+                          padding: EdgeInsets.zero,
+                          onPressed: controller.resetProfile,
+                          child: const Text('Recalculate'),
+                        ),
                       ),
-                      trailing: CupertinoButton(
-                        padding: EdgeInsets.zero,
-                        onPressed: controller.resetProfile,
-                        child: const Text('Recalculate'),
+                    ],
+                  )
+                      .animate()
+                      .fadeIn(duration: 350.ms)
+                      .slideY(begin: 0.05, end: 0, curve: Curves.easeOutQuad),
+                  
+                  CupertinoListSection.insetGrouped(
+                    header: const Text('APPEARANCE'),
+                    children: [
+                      CupertinoListTile.notched(
+                        leading: const Icon(CupertinoIcons.slider_horizontal_3, color: CupertinoColors.systemGreen),
+                        title: const Text('Unit System'),
+                        trailing: CupertinoSlidingSegmentedControl<UnitSystem>(
+                          groupValue: state.settings.unitSystem,
+                          children: const {
+                            UnitSystem.ml: Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                              child: Text('ml', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                            ),
+                            UnitSystem.oz: Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                              child: Text('oz', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                            ),
+                          },
+                          onValueChanged: (value) {
+                            if (value != null) controller.updateUnit(value);
+                          },
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                CupertinoListSection.insetGrouped(
-                  header: const Text('APPEARANCE'),
-                  children: [
-                    CupertinoListTile.notched(
-                      title: const Text('Unit System'),
-                      trailing: CupertinoSlidingSegmentedControl<UnitSystem>(
-                        groupValue: state.settings.unitSystem,
-                        children: const {
-                          UnitSystem.ml: Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-                            child: Text('ml', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-                          ),
-                          UnitSystem.oz: Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-                            child: Text('oz', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-                          ),
-                        },
-                        onValueChanged: (value) {
-                          if (value != null) controller.updateUnit(value);
-                        },
+                      _ThemeSelectorTile(state: state),
+                    ],
+                  )
+                      .animate()
+                      .fadeIn(delay: 60.ms, duration: 350.ms)
+                      .slideY(begin: 0.05, end: 0, curve: Curves.easeOutQuad),
+
+                  CupertinoListSection.insetGrouped(
+                    header: const Text('ALERTS & REMINDERS'),
+                    children: [
+                      _ReminderSettingsSection(state: state),
+                    ],
+                  )
+                      .animate()
+                      .fadeIn(delay: 120.ms, duration: 350.ms)
+                      .slideY(begin: 0.05, end: 0, curve: Curves.easeOutQuad),
+
+                  CupertinoListSection.insetGrouped(
+                    header: const Text('BEVERAGE MANAGEMENT'),
+                    children: [
+                      _CustomDrinksSection(state: state),
+                    ],
+                  )
+                      .animate()
+                      .fadeIn(delay: 180.ms, duration: 350.ms)
+                      .slideY(begin: 0.05, end: 0, curve: Curves.easeOutQuad),
+
+                  CupertinoListSection.insetGrouped(
+                    header: const Text('MONETIZATION'),
+                    children: [
+                      _MonetizationSection(state: state),
+                    ],
+                  )
+                      .animate()
+                      .fadeIn(delay: 240.ms, duration: 350.ms)
+                      .slideY(begin: 0.05, end: 0, curve: Curves.easeOutQuad),
+
+                  CupertinoListSection.insetGrouped(
+                    header: const Text('DATA & LOGS'),
+                    children: [
+                      CupertinoListTile.notched(
+                        leading: const Icon(CupertinoIcons.arrow_down_doc, color: CupertinoColors.systemPink),
+                        title: const Text('Backup CSV logs'),
+                        subtitle: const Text('Generate and copy CSV logs of your history.'),
+                        trailing: const Icon(CupertinoIcons.chevron_right, color: Color(0xFF8E8E93), size: 16),
+                        onTap: () => _showCsv(context, state),
                       ),
-                    ),
-                    _ThemeSelectorTile(state: state),
-                  ],
-                ),
-                CupertinoListSection.insetGrouped(
-                  header: const Text('ALERTS & REMINDERS'),
-                  children: [
-                    _ReminderSettingsSection(state: state),
-                  ],
-                ),
-                CupertinoListSection.insetGrouped(
-                  header: const Text('BEVERAGE MANAGEMENT'),
-                  children: [
-                    _CustomDrinksSection(state: state),
-                  ],
-                ),
-                CupertinoListSection.insetGrouped(
-                  header: const Text('MONETIZATION'),
-                  children: [
-                    _MonetizationSection(state: state),
-                  ],
-                ),
-                CupertinoListSection.insetGrouped(
-                  header: const Text('DATA & LOGS'),
-                  children: [
-                    CupertinoListTile.notched(
-                      title: const Text('Backup CSV logs'),
-                      subtitle: const Text('Generate and copy CSV logs of your history.'),
-                      trailing: const Icon(CupertinoIcons.chevron_right, color: Color(0xFF8E8E93), size: 16),
-                      onTap: () => _showCsv(context, state),
-                    ),
-                    const _FcmTokenTile(),
-                  ],
-                ),
-                const SizedBox(height: 24),
-              ]),
+                      const _FcmTokenTile(),
+                    ],
+                  )
+                      .animate()
+                      .fadeIn(delay: 300.ms, duration: 350.ms)
+                      .slideY(begin: 0.05, end: 0, curve: Curves.easeOutQuad),
+
+                  const SizedBox(height: 36),
+                ]),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   void _showCsv(BuildContext context, HydroState state) {
     final csv = const ExportService().entriesToCsv(state.entries);
@@ -228,7 +256,13 @@ class _ThemeSelectorTile extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Theme Mode', style: TextStyle(fontSize: 16)),
+              Row(
+                children: [
+                  const Icon(CupertinoIcons.color_filter, color: CupertinoColors.systemIndigo),
+                  const SizedBox(width: 12),
+                  const Text('Theme Mode', style: TextStyle(fontSize: 16)),
+                ],
+              ),
               CupertinoSlidingSegmentedControl<ThemeMode>(
                 groupValue: state.settings.themeMode,
                 children: const {
@@ -254,7 +288,13 @@ class _ThemeSelectorTile extends ConsumerWidget {
           const SizedBox(height: 16),
           Row(
             children: [
-              const Text('Accent Tint', style: TextStyle(fontSize: 16)),
+              Row(
+                children: [
+                  const Icon(CupertinoIcons.paintbrush, color: CupertinoColors.systemPurple),
+                  const SizedBox(width: 12),
+                  const Text('Accent Tint', style: TextStyle(fontSize: 16)),
+                ],
+              ),
               const Spacer(),
               Row(
                 children: colors.map((color) {
@@ -313,6 +353,7 @@ class _ReminderSettingsSection extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         CupertinoListTile.notched(
+          leading: const Icon(CupertinoIcons.bell_fill, color: CupertinoColors.systemRed),
           title: const Text('Smart Reminders'),
           subtitle: Text(
             const ReminderService().nativeNotificationsAvailable
@@ -328,6 +369,7 @@ class _ReminderSettingsSection extends ConsumerWidget {
           ),
         ),
         CupertinoListTile.notched(
+          leading: const Icon(CupertinoIcons.sparkles, color: CupertinoColors.systemOrange),
           title: const Text('Adaptive Nudges'),
           subtitle: const Text('Adjust times automatically to weather bounds.', style: TextStyle(fontSize: 11)),
           trailing: CupertinoSwitch(
@@ -338,6 +380,7 @@ class _ReminderSettingsSection extends ConsumerWidget {
           ),
         ),
         CupertinoListTile.notched(
+          leading: const Icon(CupertinoIcons.calendar, color: CupertinoColors.systemYellow),
           title: const Text('Weekend Reminders'),
           trailing: CupertinoSwitch(
             value: reminders.weekendsEnabled,
@@ -347,14 +390,20 @@ class _ReminderSettingsSection extends ConsumerWidget {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Interval Frequency', style: TextStyle(fontSize: 15)),
+                  Row(
+                    children: [
+                      const Icon(CupertinoIcons.alarm, color: CupertinoColors.systemTeal),
+                      const SizedBox(width: 12),
+                      const Text('Interval Frequency', style: TextStyle(fontSize: 15)),
+                    ],
+                  ),
                   Text(
                     '${reminders.intervalMinutes} min',
                     style: TextStyle(
@@ -505,6 +554,7 @@ class _CustomDrinksSection extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         CupertinoListTile.notched(
+          leading: const Icon(CupertinoIcons.drop, color: CupertinoColors.systemTeal),
           title: const Text('Hydration Multiplex'),
           subtitle: Text(
             limitReached
@@ -886,6 +936,7 @@ class _FcmTokenTileState extends State<_FcmTokenTile> {
   @override
   Widget build(BuildContext context) {
     return CupertinoListTile.notched(
+      leading: const Icon(CupertinoIcons.device_phone_portrait, color: Color(0xFF8E8E93)),
       title: const Text('FCM Device Token'),
       subtitle: Text(
         _token,

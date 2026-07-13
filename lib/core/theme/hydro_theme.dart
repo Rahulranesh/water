@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class HydroTheme {
   static ThemeData light(Color accent) {
@@ -28,7 +29,7 @@ class HydroTheme {
   }
 
   static ThemeData _base(ColorScheme scheme) {
-    return ThemeData(
+    final baseTheme = ThemeData(
       useMaterial3: true,
       colorScheme: scheme,
       platform: TargetPlatform.iOS,
@@ -81,6 +82,9 @@ class HydroTheme {
           borderSide: BorderSide.none,
         ),
       ),
+    );
+    return baseTheme.copyWith(
+      textTheme: GoogleFonts.plusJakartaSansTextTheme(baseTheme.textTheme),
     );
   }
 }
