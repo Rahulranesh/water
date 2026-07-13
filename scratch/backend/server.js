@@ -155,6 +155,45 @@ app.post('/trigger-now', async (req, res) => {
   }
 });
 
+// New endpoint: triggers an immediate test push to all users, ignoring weather logic
+app.post('/test-push', async (req, res) => {
+  console.log('Starting manual /test-push campaign...');
+  try {
+    const usersSnapshot = await db.collection('users').get();
+    if (usersSnapshot.empty) {
+      return res.status(404).send({ success: false, error: 'No registered devices found in Firestore.' });
+    }
+
+    let sent = 0;
+    for (const doc of usersSnapshot.docs) {
+      const { fcmToken, deviceId } = doc.data();
+      if (!fcmToken) continue;
+
+      const message = {
+        notification: {
+          title: '⚡ HydroFlow Live Push Test',
+          body: 'Hello! This is a real-time push notification delivered directly from your Render backend!',
+        },
+        token: fcmToken,
+        android: {
+          notification: {
+            icon: '@mipmap/ic_launcher',
+            color: '#00A8A8',
+          },
+        },
+      };
+
+      await admin.messaging().send(message);
+      sent++;
+      console.log(`Test notification sent successfully to device ${deviceId}`);
+    }
+
+    res.send({ success: true, message: `Successfully pushed test notifications to ${sent} devices.` });
+  } catch (error) {
+    res.status(500).send({ success: false, error: error.message });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}...`);
   console.log('Cron alert scheduler configured: Run check every hour.');
