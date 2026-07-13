@@ -1,4 +1,4 @@
-// File generated from google-services.json for project water-a75c6
+// File generated from google-services.json for project water-f4361
 // DO NOT EDIT — regenerate by running: flutterfire configure
 
 import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
@@ -30,10 +30,10 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyDKmjr-vANxYuGQ7-5UUosyINL8JtRWn30',
-    appId: '1:135030806020:android:c363a13a76d3b7a971c751',
-    messagingSenderId: '135030806020',
-    projectId: 'water-a75c6',
-    storageBucket: 'water-a75c6.firebasestorage.app',
+    apiKey: 'AIzaSyDe7uK38bJXSwoIDYupI95Tn612cHIIueI',
+    appId: '1:591229458574:android:afda3bde39dec2f6c711df',
+    messagingSenderId: '591229458574',
+    projectId: 'water-f4361',
+    storageBucket: 'water-f4361.firebasestorage.app',
   );
 }
