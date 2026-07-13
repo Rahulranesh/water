@@ -45,10 +45,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     );
 
     return CupertinoPageScaffold(
-      child: SafeArea(
-        child: Form(
-          key: _formKey,
-          child: ListView(
+      child: Material(
+        color: Colors.transparent,
+        child: SafeArea(
+          child: Form(
+            key: _formKey,
+            child: ListView(
             physics: const BouncingScrollPhysics(),
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             children: [
@@ -179,8 +181,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Future<void> _pickTime(
     TimeOfDay initial,

@@ -19,22 +19,24 @@ class SettingsScreen extends ConsumerWidget {
     final controller = ref.read(hydroControllerProvider.notifier);
 
     return CupertinoPageScaffold(
-      child: CustomScrollView(
-        physics: const BouncingScrollPhysics(
-          parent: AlwaysScrollableScrollPhysics(),
-        ),
-        slivers: [
-          CupertinoSliverNavigationBar(
-            largeTitle: const Text('Settings'),
-            border: null,
-            backgroundColor: CupertinoTheme.of(context)
-                .barBackgroundColor
-                .withValues(alpha: 0.82),
+      child: Material(
+        color: Colors.transparent,
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics(),
           ),
-          SliverSafeArea(
-            top: false,
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
+          slivers: [
+            CupertinoSliverNavigationBar(
+              largeTitle: const Text('Settings'),
+              border: null,
+              backgroundColor: CupertinoTheme.of(context)
+                  .barBackgroundColor
+                  .withValues(alpha: 0.82),
+            ),
+            SliverSafeArea(
+              top: false,
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
                 CupertinoListSection.insetGrouped(
                   header: const Text('PROFILE & MASCOT'),
                   children: [
@@ -114,8 +116,9 @@ class SettingsScreen extends ConsumerWidget {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   void _showCsv(BuildContext context, HydroState state) {
     final csv = const ExportService().entriesToCsv(state.entries);

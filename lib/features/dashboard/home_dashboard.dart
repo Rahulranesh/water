@@ -52,115 +52,118 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard> {
     }
 
     return CupertinoPageScaffold(
-      child: CustomScrollView(
-        physics: const BouncingScrollPhysics(
-          parent: AlwaysScrollableScrollPhysics(),
-        ),
-        slivers: [
-          CupertinoSliverNavigationBar(
-            largeTitle: const Text('HydroFlow'),
-            border: null,
-            backgroundColor: CupertinoTheme.of(context)
-                .barBackgroundColor
-                .withValues(alpha: 0.82),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _StreakBadge(entries: state.entries),
-                const SizedBox(width: 8),
-                CupertinoButton(
-                  padding: EdgeInsets.zero,
-                  onPressed: _showCustomAmountSheet,
-                  child: const Icon(CupertinoIcons.add, size: 26),
-                ),
-              ],
-            ),
+      child: Material(
+        color: Colors.transparent,
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics(),
           ),
-          SliverSafeArea(
-            top: false,
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 10),
-                      Text(
-                        copy,
-                        style: TextStyle(
-                          fontSize: 15,
-                          color: CupertinoDynamicColor.resolve(
-                            CupertinoColors.secondaryLabel,
-                            context,
+          slivers: [
+            CupertinoSliverNavigationBar(
+              largeTitle: const Text('HydroFlow'),
+              border: null,
+              backgroundColor: CupertinoTheme.of(context)
+                  .barBackgroundColor
+                  .withValues(alpha: 0.82),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _StreakBadge(entries: state.entries),
+                  const SizedBox(width: 8),
+                  CupertinoButton(
+                    padding: EdgeInsets.zero,
+                    onPressed: _showCustomAmountSheet,
+                    child: const Icon(CupertinoIcons.add, size: 26),
+                  ),
+                ],
+              ),
+            ),
+            SliverSafeArea(
+              top: false,
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 10),
+                        Text(
+                          copy,
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: CupertinoDynamicColor.resolve(
+                              CupertinoColors.secondaryLabel,
+                              context,
+                            ),
+                            fontWeight: FontWeight.w500,
                           ),
-                          fontWeight: FontWeight.w500,
-                        ),
-                      )
-                          .animate()
-                          .fadeIn(duration: 400.ms)
-                          .slideY(begin: 0.1, end: 0),
-                      const SizedBox(height: 24),
-                      // ── Location permission card ─────────────────────────────
-                      if (showPermissionCard) const LocationPermissionCard(),
-                      // ── Weather card (when data is available) ────────────────
-                      if (weather != null) WeatherCard(weather: weather),
-                      const SizedBox(height: 16),
-                      _MascotHero(
-                        mascotName: state.settings.mascotName,
-                        mood: state.mascotMood,
-                        progress: progress,
-                        copy: copy,
-                      ),
-                      const SizedBox(height: 32),
-                      Center(
-                        child: _WaveProgress(
-                          progress: progress,
-                          intake: _formatAmount(
-                            state.todayEffectiveMl,
-                            state.settings.unitSystem,
-                          ),
-                          goal: _formatAmount(
-                            adjustedGoal,
-                            state.settings.unitSystem,
-                          ),
-                          isWeatherAdjusted: weather != null,
                         )
                             .animate()
-                            .fadeIn(duration: 500.ms)
-                            .scale(begin: const Offset(.95, .95)),
-                      ),
-                      const SizedBox(height: 36),
-                      _SectionHeader(title: 'CHOOSE BEVERAGE'),
-                      _DrinkPicker(
-                        drinks: state.drinkOptions,
-                        selected: _selectedDrink,
-                        onSelected: (drink) =>
-                            setState(() => _selectedDrink = drink),
-                      ),
-                      const SizedBox(height: 24),
-                      _SectionHeader(title: 'QUICK LOG'),
-                      _QuickAdds(
-                        unitSystem: state.settings.unitSystem,
-                        onAdd: (amount) => _add(amount, _selectedDrink),
-                      ),
-                      const SizedBox(height: 36),
-                      _TodayEntries(entries: state.todayEntries),
-                      const SizedBox(height: 24),
-                      if (state.settings.shouldShowAds)
-                        _AdBanner(
-                          onReward: () => ref
-                              .read(hydroControllerProvider.notifier)
-                              .grantRewardedAdFreeHour(),
+                            .fadeIn(duration: 400.ms)
+                            .slideY(begin: 0.1, end: 0),
+                        const SizedBox(height: 24),
+                        // ── Location permission card ─────────────────────────────
+                        if (showPermissionCard) const LocationPermissionCard(),
+                        // ── Weather card (when data is available) ────────────────
+                        if (weather != null) WeatherCard(weather: weather),
+                        const SizedBox(height: 16),
+                        _MascotHero(
+                          mascotName: state.settings.mascotName,
+                          mood: state.mascotMood,
+                          progress: progress,
+                          copy: copy,
                         ),
-                      const SizedBox(height: 32),
-                    ],
+                        const SizedBox(height: 32),
+                        Center(
+                          child: _WaveProgress(
+                            progress: progress,
+                            intake: _formatAmount(
+                              state.todayEffectiveMl,
+                              state.settings.unitSystem,
+                            ),
+                            goal: _formatAmount(
+                              adjustedGoal,
+                              state.settings.unitSystem,
+                            ),
+                            isWeatherAdjusted: weather != null,
+                          )
+                              .animate()
+                              .fadeIn(duration: 500.ms)
+                              .scale(begin: const Offset(.95, .95)),
+                        ),
+                        const SizedBox(height: 36),
+                        _SectionHeader(title: 'CHOOSE BEVERAGE'),
+                        _DrinkPicker(
+                          drinks: state.drinkOptions,
+                          selected: _selectedDrink,
+                          onSelected: (drink) =>
+                              setState(() => _selectedDrink = drink),
+                        ),
+                        const SizedBox(height: 24),
+                        _SectionHeader(title: 'QUICK LOG'),
+                        _QuickAdds(
+                          unitSystem: state.settings.unitSystem,
+                          onAdd: (amount) => _add(amount, _selectedDrink),
+                        ),
+                        const SizedBox(height: 36),
+                        _TodayEntries(entries: state.todayEntries),
+                        const SizedBox(height: 24),
+                        if (state.settings.shouldShowAds)
+                          _AdBanner(
+                            onReward: () => ref
+                                .read(hydroControllerProvider.notifier)
+                                .grantRewardedAdFreeHour(),
+                          ),
+                        const SizedBox(height: 32),
+                      ],
+                    ),
                   ),
-                ),
-              ]),
+                ]),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

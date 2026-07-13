@@ -19,22 +19,24 @@ class HistoryScreen extends ConsumerWidget {
     final isDark = CupertinoTheme.brightnessOf(context) == Brightness.dark;
 
     return CupertinoPageScaffold(
-      child: CustomScrollView(
-        physics: const BouncingScrollPhysics(
-          parent: AlwaysScrollableScrollPhysics(),
-        ),
-        slivers: [
-          CupertinoSliverNavigationBar(
-            largeTitle: const Text('History'),
-            border: null,
-            backgroundColor: CupertinoTheme.of(context)
-                .barBackgroundColor
-                .withValues(alpha: 0.82),
+      child: Material(
+        color: Colors.transparent,
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics(),
           ),
-          SliverSafeArea(
-            top: false,
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
+          slivers: [
+            CupertinoSliverNavigationBar(
+              largeTitle: const Text('History'),
+              border: null,
+              backgroundColor: CupertinoTheme.of(context)
+                  .barBackgroundColor
+                  .withValues(alpha: 0.82),
+            ),
+            SliverSafeArea(
+              top: false,
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                   child: Column(
@@ -167,8 +169,9 @@ class HistoryScreen extends ConsumerWidget {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 class _SectionHeader extends StatelessWidget {
