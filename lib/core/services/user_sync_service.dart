@@ -39,9 +39,13 @@ class UserSyncService {
   /// Syncs the current FCM Token and coordinates to Firestore.
   /// Gracefully fails if Firestore is offline or permissions are missing.
   Future<void> syncUserSession() async {
+    debugPrint('UserSyncService: starting syncUserSession...');
     try {
       final deviceId = await _getOrGenerateDeviceId();
+      debugPrint('UserSyncService: got device ID: $deviceId');
+
       final fcmToken = await FcmService().getDeviceToken();
+      debugPrint('UserSyncService: got FCM token: ${fcmToken != null ? "exists" : "null"}');
 
       if (fcmToken == null) {
         debugPrint('UserSyncService: No FCM token, skipping sync');
@@ -51,15 +55,20 @@ class UserSyncService {
       // Read current location if permission is granted
       double? lat;
       double? lon;
+      debugPrint('UserSyncService: checking location permission...');
       final perm = await _locationService.checkPermission();
+      debugPrint('UserSyncService: location permission: $perm');
       if (_locationService.isGranted(perm)) {
+        debugPrint('UserSyncService: fetching current position...');
         final position = await _locationService.getCurrentPosition();
         if (position != null) {
           lat = position.latitude;
           lon = position.longitude;
+          debugPrint('UserSyncService: position fetched: $lat, $lon');
         }
       }
 
+      debugPrint('UserSyncService: saving to Firestore...');
       // Save user record in Cloud Firestore
       await _firestore.collection('users').doc(deviceId).set({
         'deviceId': deviceId,
@@ -72,7 +81,7 @@ class UserSyncService {
 
       debugPrint('UserSyncService: Synced device ID $deviceId to Firestore successfully');
     } catch (e) {
-      debugPrint('UserSyncService: Firestore sync failed (make sure Firestore is enabled): $e');
+      debugPrint('UserSyncService: Firestore sync failed: $e');
     }
   }
 }
