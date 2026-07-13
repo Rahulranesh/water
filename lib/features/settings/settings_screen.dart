@@ -642,46 +642,197 @@ class _MonetizationSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final controller = ref.read(hydroControllerProvider.notifier);
+    final isPro = state.settings.isPro;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        SwitchListTile(
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          title: const Text('PRO Preview Mode', style: TextStyle(fontWeight: FontWeight.w600)),
-          subtitle: const Text('Simulates paid license tier. Removes ads, unlocks unlimited custom drinks.'),
-          value: state.settings.isPro,
-          onChanged: (_) => controller.toggleProPreview(),
-        ),
-        Divider(
-          height: 1,
-          thickness: 1,
-          indent: 16,
-          endIndent: 16,
-          color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
+        if (isPro)
+          ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            leading: Icon(
+              Icons.stars_rounded,
+              color: Theme.of(context).colorScheme.primary,
+              size: 26,
+            ),
+            title: const Text('HydroFlow PRO Active', style: TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: const Text('Lifetime premium features unlocked. Thank you for your support!'),
+            trailing: Icon(
+              Icons.check_circle_rounded,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          )
+        else ...[
+          ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            leading: Icon(
+              Icons.stars_rounded,
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.6),
+              size: 26,
+            ),
+            title: const Text('Upgrade to HydroFlow PRO', style: TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: const Text('Remove ads, unlock unlimited beverages, and support the app.'),
+            trailing: const Icon(Icons.chevron_right_rounded),
+            onTap: () => _showUpgradeDialog(context, ref),
+          ),
+          Divider(
+            height: 1,
+            thickness: 1,
+            indent: 16,
+            endIndent: 16,
+            color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: FilledButton.icon(
+              onPressed: () async {
+                final earned = await const AdService().showRewardedAdForAdFreeHour();
+                if (earned) await ref.read(hydroControllerProvider.notifier).grantRewardedAdFreeHour();
+              },
+              icon: const Icon(Icons.play_circle_outline_rounded),
+              label: const Text('Watch Ad (1 Hr Ad-Free)'),
+              style: FilledButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  void _showUpgradeDialog(BuildContext context, WidgetRef ref) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (context) {
+        final scheme = Theme.of(context).colorScheme;
+        return Container(
+          padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () async {
-                    await const AdService().initializeAfterConsent();
-                    await controller.completeAdConsent();
-                  },
-                  child: Text(state.settings.ads.consentComplete ? 'Consent Logged' : 'Consent Flow'),
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(2),
+                    color: scheme.outlineVariant,
+                  ),
                 ),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: FilledButton(
-                  onPressed: () async {
-                    final earned = await const AdService().showRewardedAdForAdFreeHour();
-                    if (earned) await controller.grantRewardedAdFreeHour();
-                  },
-                  child: const Text('Watch Ad (1 Hr Ad-Free)'),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  const Text(
+                    '👑',
+                    style: TextStyle(fontSize: 32),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'HydroFlow PRO',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: -0.5,
+                        ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'Unlock the ultimate hydration companion and support development!',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                    ),
+              ),
+              const SizedBox(height: 24),
+              const _UpgradeFeatureRow(
+                icon: Icons.block_rounded,
+                title: 'Ad-Free Experience',
+                description: 'Remove all banners and popups instantly.',
+              ),
+              const SizedBox(height: 16),
+              const _UpgradeFeatureRow(
+                icon: Icons.local_cafe_rounded,
+                title: 'Unlimited Custom Beverages',
+                description: 'Add as many custom drinks as you like (limited to 2 in free).',
+              ),
+              const SizedBox(height: 16),
+              const _UpgradeFeatureRow(
+                icon: Icons.thermostat_rounded,
+                title: 'Weather-Aware Alerts',
+                description: 'Adaptive splits based on real-time temperature updates.',
+              ),
+              const SizedBox(height: 32),
+              FilledButton(
+                onPressed: () async {
+                  await ref.read(hydroControllerProvider.notifier).toggleProPreview();
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Welcome to HydroFlow PRO! 🎉')),
+                    );
+                  }
+                },
+                style: FilledButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
+                child: const Text('Upgrade for \$2.99 / Life', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _UpgradeFeatureRow extends StatelessWidget {
+  const _UpgradeFeatureRow({
+    required this.icon,
+    required this.title,
+    required this.description,
+  });
+
+  final IconData icon;
+  final String title;
+  final String description;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: scheme.primary.withValues(alpha: 0.1),
+          ),
+          child: Icon(icon, color: scheme.primary, size: 20),
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                description,
+                style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 12),
               ),
             ],
           ),
