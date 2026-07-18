@@ -2,9 +2,9 @@
 set -e
 
 echo "==> Installing Flutter SDK..."
-git clone --depth 1 --branch stable https://github.com/flutter/flutter.git /opt/flutter
+git clone --depth 1 --branch stable https://github.com/flutter/flutter.git flutter-sdk
 
-export PATH="/opt/flutter/bin:$PATH"
+export PATH="$PWD/flutter-sdk/bin:$PATH"
 
 echo "==> Enabling web..."
 flutter config --enable-web --quiet
