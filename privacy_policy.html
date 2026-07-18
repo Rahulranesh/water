@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HydroFlow - Privacy Policy</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 720px;
+      margin: 40px auto;
+      padding: 0 20px;
+      line-height: 1.6;
+      color: #333;
+    }
+    h1 { font-size: 1.8em; margin-bottom: 0.3em; }
+    h2 { font-size: 1.3em; margin-top: 1.5em; }
+    p, li { color: #555; }
+    hr { border: none; border-top: 1px solid #ddd; margin: 2em 0; }
+    .date { color: #888; font-size: 0.9em; }
+  </style>
+</head>
+<body>
+
+<h1>Privacy Policy</h1>
+<p class="date"><strong>Last updated:</strong> July 18, 2026</p>
+
+<p>This Privacy Policy describes how BerryLoop ("we," "our," or "us") collects, uses, and shares information when you use the HydroFlow mobile application (the "App").</p>
+
+<hr>
+
+<h2>Information We Collect</h2>
+
+<h3>Information You Provide</h3>
+<ul>
+  <li><strong>Profile Data:</strong> During onboarding, you may provide gender, weight, height, age, activity level, climate region, hydration goal type, and wake/sleep times. This data is stored locally on your device and is not uploaded to our servers.</li>
+  <li><strong>Hydration Logs:</strong> Your daily water/food intake entries are stored locally on your device.</li>
+  <li><strong>Custom Beverages:</strong> Any custom drinks you create are stored locally.</li>
+  <li><strong>Bottle Photos (PRO feature):</strong> If you subscribe to PRO, you may take or upload photos of your water bottle. These images are sent to Google's Gemini AI for capacity and fill-level analysis. Images are not permanently stored by us.</li>
+</ul>
+
+<h3>Information Collected Automatically</h3>
+<ul>
+  <li><strong>Device ID:</strong> A random anonymous identifier is generated and stored locally. This ID is used to associate your device with push notification tokens and location data in our backend.</li>
+  <li><strong>Push Notification Token:</strong> A Firebase Cloud Messaging token is collected to send you reminder notifications. This token is stored in Firestore alongside your anonymous device ID.</li>
+  <li><strong>Location Data:</strong> With your permission, we access approximate (city-level) location. This is used to fetch local weather for personalized hydration recommendations. If you grant location permission, coordinates may be uploaded to Firestore to enable weather-based push notifications. Location is never used for tracking or marketing.</li>
+  <li><strong>Platform Information:</strong> Your device platform (iOS/Android) is collected for analytics and ad targeting purposes.</li>
+</ul>
+
+<h3>Third-Party Services</h3>
+<ul>
+  <li><strong>Google Firebase</strong> (Firestore, Cloud Messaging, AI): Used for anonymous data sync, push notifications, and bottle photo AI analysis. Firebase's data handling is governed by <a href="https://firebase.google.com/support/privacy">Google's Privacy Policy</a>.</li>
+  <li><strong>Google AdMob:</strong> Contextual advertisements are shown to free-tier users. AdMob may collect advertising IDs and device data. See <a href="https://policies.google.com/privacy">Google's Privacy Policy</a>.</li>
+  <li><strong>RevenueCat:</strong> Subscription purchase and entitlement verification is handled by RevenueCat. See <a href="https://www.revenuecat.com/privacy">RevenueCat's Privacy Policy</a>.</li>
+  <li><strong>Open-Meteo &amp; Nominatim (OpenStreetMap):</strong> When fetching weather data, your approximate coordinates are sent to these open-source APIs. No data is stored by these services.</li>
+</ul>
+
+<hr>
+
+<h2>How We Use Your Information</h2>
+<ul>
+  <li>To calculate personalized daily hydration goals</li>
+  <li>To provide local weather information and weather-based drink suggestions</li>
+  <li>To send reminder notifications (if enabled)</li>
+  <li>To serve contextual advertisements (free tier)</li>
+  <li>To process and verify PRO subscription purchases</li>
+  <li>To analyze bottle capacity and water level via AI (PRO feature)</li>
+  <li>To improve the app through anonymized usage analytics</li>
+</ul>
+
+<hr>
+
+<h2>Data Storage &amp; Retention</h2>
+<ul>
+  <li>The majority of your data (hydration logs, profile settings, preferences) is stored <strong>locally on your device</strong> using SharedPreferences.</li>
+  <li>Your anonymous device ID, FCM token, and (if permitted) location coordinates are stored in <strong>Firestore</strong> (Google Cloud) for push notification purposes.</li>
+  <li>We retain Firestore records as long as the app remains active on your device. To delete this data, contact us at the email below.</li>
+  <li>Bottle photos are processed ephemerally by Gemini AI and are not retained.</li>
+</ul>
+
+<hr>
+
+<h2>Data Sharing &amp; Disclosure</h2>
+<p>We <strong>do not sell, rent, or share</strong> your personal data for marketing purposes. We only share data with third-party service providers as necessary to operate the App (as described above). These providers are contractually obligated to protect your data.</p>
+<p>We may disclose information if required by law or to protect our legal rights.</p>
+
+<hr>
+
+<h2>Data Export &amp; Deletion</h2>
+<ul>
+  <li><strong>Export:</strong> You can export all your hydration logs as a CSV file from the Settings screen.</li>
+  <li><strong>Deletion:</strong> Uninstalling the App removes all locally stored data. To request deletion of data stored in Firestore, contact us at the email below.</li>
+</ul>
+
+<hr>
+
+<h2>Children's Privacy</h2>
+<p>The App is not directed at children under 13. We do not knowingly collect personal information from children under 13.</p>
+
+<hr>
+
+<h2>Changes to This Policy</h2>
+<p>We may update this Privacy Policy from time to time. Changes will be posted within the App and this page. Your continued use of the App after changes constitutes acceptance of the updated policy.</p>
+
+<hr>
+
+<h2>Contact Us</h2>
+<p>If you have questions or concerns about this Privacy Policy or your data, please contact us:</p>
+<ul>
+  <li>Email: <a href="mailto:berryloopofficial@gmail.com">berryloopofficial@gmail.com</a></li>
+  <li>Website: <a href="https://berryloop.onrender.com/">https://berryloop.onrender.com/</a></li>
+</ul>
+
+</body>
+</html>
